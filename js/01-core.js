@@ -1,8 +1,9 @@
 var MAXDAY=30, AP_MAX=3, MAP_W=420, MAP_H=480, DIFF=0;
 var CITY_TYPES={
-  hq:{n:'본거지',inc:4,exp:1,cap:8,men:4,df:1.1},stn:{n:'역전',inc:4,exp:2,cap:6,men:2,df:1},
-  club:{n:'유흥가',inc:5,exp:3,cap:6,men:3,df:1},port:{n:'항구',inc:6,exp:3,cap:6,men:2,df:1},mkt:{n:'시장',inc:3,exp:1,cap:5,men:2,df:1},
-  bridge:{n:'다리목',inc:2,exp:1,cap:6,men:2,df:1.2},fort:{n:'요새',inc:1,exp:2,cap:9,men:3,df:1.35}
+  hq:{n:'본거지',inc:4,exp:1,cap:8,men:4,df:1.1},stn:{n:'역전',inc:3,exp:2,cap:6,men:2,df:1},
+  club:{n:'유흥가',inc:6,exp:3,cap:6,men:3,df:1},port:{n:'항구',inc:6,exp:3,cap:6,men:2,df:1},mkt:{n:'시장',inc:5,exp:1,cap:5,men:2,df:1},
+  bar:{n:'술집',inc:5,exp:2,cap:6,men:3,df:1.15},pachi:{n:'파친코',inc:6,exp:2,cap:6,men:3,df:1.15},
+  bridge:{n:'다리목',inc:2,exp:1,cap:6,men:2,df:1.2}
 };
 var ORGS=[
   {id:0,name:'우리',short:'우리',trait:'',thr:0,join:999},
@@ -65,7 +66,7 @@ var TECH=[
   {id:'a4',br:0,name:'지하 금고',cost:35,pre:'a1',heat:2,text:'밤마다 지도에 금빛 점이 하나 더 나타난다'},
   {id:'a3',br:0,name:'신병 모집소',cost:55,pre:'a2',heat:4,text:'모집이 +3명 · 유지비 병력×0.4'},
   {id:'a5',br:0,name:'돈세탁',cost:50,pre:'a4',heat:0,text:'자금이 ¥40 이상이면 밤마다 이자 ¥3'},
-  {id:'a6',br:0,name:'상인회',cost:60,pre:'a5',heat:3,text:'유흥가·항구·시장의 수입 +¥2'},
+  {id:'a6',br:0,name:'상인회',cost:60,pre:'a5',heat:3,text:'시장·술집·유흥가·파친코·항구의 수입 +¥2'},
   {id:'b1',br:1,name:'쇠파이프',cost:30,pre:null,heat:6,text:'공격력 ×1.08 · 경계 매밤 +1'},
   {id:'b2',br:1,name:'검은 차량',cost:45,pre:'b1',heat:8,text:'이길 때 잃는 병력 −20% · 본보기 위세 +4 · 경계 매밤 +1'},
   {id:'b4',br:1,name:'방탄 개조',cost:40,pre:'b1',heat:2,text:'이웃의 공격을 받을 때 우리 땅 방어 ×1.1'},
@@ -80,7 +81,7 @@ var TECH=[
   {id:'c6',br:2,name:'언론 플레이',cost:50,pre:'c5',heat:0,text:'땅을 차지할 때 오르는 경계 −1'}
 ];
 function hasTech(s,id){return s.tech.indexOf(id)>=0;}
-function tileInc(s,t){return t.inc+((t.kind==='city'&&hasTech(s,'a1'))?1:0)+((t.kind==='area'&&hasTech(s,'a2'))?1:0)+((hasTech(s,'a6')&&(t.type==='club'||t.type==='port'||t.type==='mkt'))?2:0);}
+function tileInc(s,t){return t.inc+((t.kind==='city'&&hasTech(s,'a1'))?1:0)+((t.kind==='area'&&hasTech(s,'a2'))?1:0)+((hasTech(s,'a6')&&(t.type==='club'||t.type==='port'||t.type==='mkt'||t.type==='bar'||t.type==='pachi'))?2:0);}
 function strikeAt(s){return hasTech(s,'c2')?78:70;}
 function drinkCost(s){return hasTech(s,'c3')?5:8;}
 function actTech(s,id){
@@ -584,7 +585,7 @@ function pickAttack(s,r,pred,opt){
       if(!pred(v))return;
       var margin=A-v.men*1.15*dfac(vi);
       if(margin<opt.minMargin)return;
-      var sc=margin+v.inc*0.4+(v.hq?4:0)+(v.type==='fort'||v.type==='bridge'||v.type==='stn'?1.5:0)+rnd(s)*0.5;
+      var sc=margin+v.inc*0.4+(v.hq?4:0)+(v.type==='bridge'||v.type==='stn'||v.type==='bar'||v.type==='mkt'||v.type==='club'||v.type==='pachi'?1.5:0)+rnd(s)*0.5;
       if(!best||sc>best.sc)best={u:u.id,v:vi,A:A,sc:sc};
     });
   });
@@ -642,7 +643,7 @@ function expandRival(s,r){
       var v=s.tiles[vi];
       if(v.owner!==-1)return;
       if(A-v.men*1.15*dfac(vi)<1.2)return;
-      var sc=v.inc+v.exp*0.3+(v.type==='fort'||v.type==='bridge'||v.type==='stn'?1.5:0)+rnd(s)*1.5;
+      var sc=v.inc+v.exp*0.3+(v.type==='bridge'||v.type==='stn'||v.type==='bar'||v.type==='mkt'||v.type==='club'||v.type==='pachi'?1.5:0)+rnd(s)*1.5;
       if(!best||sc>best.sc)best={u:u.id,v:vi,sc:sc,A:Math.min(A,v.men+2)};
     });
   });

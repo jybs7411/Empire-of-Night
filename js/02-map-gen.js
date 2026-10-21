@@ -8,11 +8,12 @@ var TERRAIN={
 var CITY_TIP={
   hq:'본거지. 잃으면 끝난다. 방어 +10%.',
   stn:'역전. 내 역끼리는 철도로 병력을 한 번에 옮긴다.',
-  club:'유흥가. 수입이 크지만 눈에 잘 띈다.',
-  port:'항구. 수입이 가장 크다.',
-  mkt:'시장. 수입은 작지만 눈에 덜 띈다.',
-  bridge:'다리목. 강 건너로 가는 길목이다. 방어 +20%.',
-  fort:'요새. 방어 +35%. 병력을 많이 쌓을 수 있다.'
+  club:'유흥가. 조직의 큰 돈줄이지만 눈에 잘 띈다.',
+  port:'항구. 밀수로 수입이 가장 크다.',
+  mkt:'시장. 상인들에게 걷는 안정된 돈줄. 눈에 덜 띈다.',
+  bar:'술집. 술값과 보호비가 모이는 돈줄이다. 방어 +15%.',
+  pachi:'파친코. 현금이 쏟아지는 돈줄. 방어 +15%.',
+  bridge:'다리목. 강 건너로 가는 길목이다. 방어 +20%.'
 };
 var N_PRE=['아사히','시라카바','미도리','구로사와','아카쓰키','후지미','나카노','센고쿠','야나기','하마나','노가미','가네야마','도리이','쓰키노','시모타니','하마카제','오오하마','이시바시','미나토','오카','다카노','사쿠라','마쓰바','가와라','후타바','아오바','시노노메','유키노','하루카','히이라기','이즈미','가스미','다케','스즈카','오이','시오','모미지','와카바','기쿠','사카에','도키와','나기사'];
 var S_PLAIN=['평야','들','들판','벌','분지','농지'],S_MTN=['고개','산악','고원','능선','봉우리'],S_FOR=['숲','수풀','삼림','솔밭'],S_COAST=['해안','곶','포구'];
@@ -22,7 +23,8 @@ var C_CLUB=['가부토초','가미야초','유라쿠초','나가레초'];
 var C_PORT=['미나미항','아오이항','시오카제항','미사키항'];
 var C_MKT=['히가시 시장','가와라 시장','도리이 시장','아사 시장'];
 var C_BRG=['아오이바시','센본바시','다쓰미바시','나가레바시','가게바시'];
-var C_FORT=['마쓰시로 성터','구로가네 요새','다케오카 성터','이와오 요새'];
+var C_BAR=['달빛 술집','쓰바키 이자카야','도라지 주점','요루노 바','하나비 술집'];
+var C_PACHI=['골든 파친코','마루한 파친코','니혼 파친코','스타 파친코'];
 
 function shuf(R,a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd(R)*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
 function pickOne(R,a){return a[Math.floor(rnd(R)*a.length)];}
@@ -323,10 +325,10 @@ function tryMap(R){
   if(!place('port',portC.length?portC:singles(coastal),null)&&!place('port',singles(coastal),null))return null;
   if(!place('mkt',pairs,null))return null;
   if(!place('club',singles(function(a){return ter[a]==='plain';}),function(a,b){return dcen(a)-dcen(b);}))return null;
-  var mt=singles(function(a){return ter[a]==='mtn';});
-  if(!place('fort',mt.length?mt:singles(function(a){return true;}),null))return null;
+  if(!place('bar',singles(function(a){return ter[a]!=='mtn';}),function(a,b){return dcen(a)-dcen(b);}))return null;
+  place('pachi',singles(function(a){return ter[a]==='plain';}),null);
   /* 도시 이름 */
-  var pools={stn:shuf(R,C_STN),club:shuf(R,C_CLUB),port:shuf(R,C_PORT),mkt:shuf(R,C_MKT),bridge:shuf(R,C_BRG),fort:shuf(R,C_FORT)};
+  var pools={stn:shuf(R,C_STN),club:shuf(R,C_CLUB),port:shuf(R,C_PORT),mkt:shuf(R,C_MKT),bridge:shuf(R,C_BRG),bar:shuf(R,C_BAR),pachi:shuf(R,C_PACHI)};
   cities.forEach(function(c3){if(!c3.name)c3.name=pools[c3.type].shift();});
   /* 이름표 자리: 도시·다른 이름표와 겹치지 않게 */
   function ovl(a,b){var w=Math.min(a[2],b[2])-Math.max(a[0],b[0]),h=Math.min(a[3],b[3])-Math.max(a[1],b[1]);return(w>0&&h>0)?w*h:0;}

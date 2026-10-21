@@ -225,6 +225,8 @@ function offersNight(s){
       var p=0.07+P.timid*0.14+(s.dread>=60?0.12:0)+(losing?0.2:0)+Math.max(0,o)/200-s.grudge[r]*0.07-((r===2&&s.grudge[r]>=2)?0.15:0);
       if(o<=-60||s.day<3)p=0;
       if(rnd(s)<p){s.offers.push({type:'offer',kind:'truce',r:r,day:s.day});s.cool[r]=5;return;}
+      /* 우리가 강하고 호감이 있으면, 휴전 없이도 판이 기운 쪽(우리)에 붙으려 한다 */
+      if(o>=18&&s.dread>=55&&s.day>=4&&rnd(s)<0.08+P.timid*0.08){s.offers.push({type:'offer',kind:'ally',r:r,day:s.day});s.cool[r]=6;return;}
     }else if(pk==='truce'&&o>=25&&s.day-pc.since>=2){
       if(rnd(s)<0.3){s.offers.push({type:'offer',kind:'ally',r:r,day:s.day});s.cool[r]=6;return;}
     }else if(pk==='ally'&&s.day-pc.ask>=7&&rnd(s)<0.18){

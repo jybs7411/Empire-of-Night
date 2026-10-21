@@ -131,7 +131,7 @@ function prism(x,y,w,d,h,top,left,right,line){
 }
 function heroSvg(){
   var land=owned(G,0).length,objs=[],h='<svg class="hero" viewBox="0 0 400 300" role="img" aria-label="조직 본거지">';
-  var g='#2f9e63';
+  var g='#d9b45a';
   h+='<defs><pattern id="hAsph" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#8d8b86"/><path d="M0 3H6" stroke="#7f7d78" stroke-width=".8"/></pattern></defs>';
   /* 바닥 */
   function Q(x0,y0,x1,y1,z){return isoP(x0,y0,z).join(',')+' '+isoP(x1,y0,z).join(',')+' '+isoP(x1,y1,z).join(',')+' '+isoP(x0,y1,z).join(',');}
@@ -173,7 +173,7 @@ function crewBust(i){
   var col=['#8a5f4a','#6b6f7a','#6f7a5c'][i%3],hair=['#17130f','#2a2018','#3a2c1c'][i%3];
   var x=i===1?'<circle cx="26" cy="27.5" r="4" fill="rgba(255,255,255,.25)" stroke="#2b2b2b" stroke-width="1"/><circle cx="38" cy="27.5" r="4" fill="rgba(255,255,255,.25)" stroke="#2b2b2b" stroke-width="1"/><path d="M30 27.4h4" stroke="#2b2b2b"/>':
     (i===0?'<path d="M39 22l3.4 9" stroke="#a45a4a" stroke-width="1.3" stroke-linecap="round"/>':'<path d="M27 26h3M34 26h3" stroke="#2b2b2b" stroke-width="1.4" stroke-linecap="round"/>');
-  return'<svg class="pt crewpt" viewBox="0 0 64 64" role="img" aria-hidden="true"><rect width="64" height="64" fill="#cdbf94"/>'+
+  return'<svg class="pt crewpt" viewBox="0 0 64 64" role="img" aria-hidden="true"><rect width="64" height="64" fill="#2a211a"/>'+
     '<path d="M4 64C6 51 18 46 32 46s26 5 28 18z" fill="'+col+'"/><rect x="27.5" y="37" width="9" height="11" rx="3" fill="#c9a285"/>'+
     '<ellipse cx="32" cy="27" rx="11.5" ry="13.5" fill="#dbb99a"/><path d="M20.4 25c-1-9.4 4.6-15.6 11.8-15.4 7.4.2 12 5.4 11.4 15.4-2-6-5.6-9-11.4-8.8-5.6.2-9 3-11.8 8.8z" fill="'+hair+'"/>'+x+
     '<path d="M28.4 36.4q3.6 1.6 7.2 0" stroke="#8c5f50" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>';
