@@ -1,4 +1,4 @@
-var MAXDAY=30, AP_MAX=3, MAP_W=420, MAP_H=480, DIFF=0;
+var MAXDAY=15, GRACE_NIGHTS=1, RAID_MUL=1.7, AP_MAX=3, MAP_W=420, MAP_H=480, DIFF=0;
 var CITY_TYPES={
   hq:{n:'본거지',inc:4,exp:1,cap:8,men:4,df:1.1},stn:{n:'역전',inc:3,exp:2,cap:6,men:2,df:1},
   club:{n:'유흥가',inc:6,exp:3,cap:6,men:3,df:1},port:{n:'항구',inc:6,exp:3,cap:6,men:2,df:1},mkt:{n:'시장',inc:5,exp:1,cap:5,men:2,df:1},
@@ -18,7 +18,7 @@ var CREW=[
   {name:'마키노',role:'막내',loy:65,perk:'믿음 50 이상이면 밤마다 동요가 2 가라앉는다.'}
 ];
 
-var RULE_DAYS=[6,12,18,24], SCENE_DAYS=[3,9,15,21,27];
+var RULE_DAYS=[4,8,12], SCENE_DAYS=[3,6,10,13,15];
 var RULES={
   tribute:{name:'상납령',text:'모든 가게에서 매달 한 몫을 더 걷는다. 낼 수 있는지는 묻지 않는다.',fx:'밤 수입 +25% · 부하 믿음 매밤 −2'},
   giri:{name:'의리의 규칙',text:'식구는 버리지 않는다. 그 대신 식구에게 쓰는 것이 늘어난다.',fx:'부하 믿음 매밤 +2 · 위세 매밤 −1'},
@@ -128,28 +128,28 @@ function giveUpCrew(s){
   s.crew[b].alive=false;s.stats.purged++;loyAll(s,-6);
 }
 var DILEMMAS=[
-  {minDay:5,title:'형사의 방문',when:function(s){return s.heat>=45;},
+  {minDay:4,title:'형사의 방문',when:function(s){return s.heat>=45;},
    text:'정장 차림의 남자 둘이 가게마다 돌며 우리 이름을 묻고 다닌다. 명함에는 "생활안전"이라고 적혀 있다. 그것이 진짜 부서인지 아는 사람은 없다.',
    choices:[
     {label:'봉투를 건넨다',desc:'¥−18 · 경계 −10',cost:18,kind:'neutral',out:'남자는 봉투의 두께를 손끝으로 재더니 아무 말 없이 돌아갔다.',fx:function(s){s.money-=18;adjv(s,'heat',-10);}},
     {label:'모른 척한다',desc:'경계 +6 · 위세 +2',kind:'neutral',out:'가게 주인들은 우리를 모른다고 했다. 그 거짓말이 얼마나 갈지는 아무도 몰랐다.',fx:function(s){adjv(s,'heat',6);adjv(s,'dread',2);}},
     {label:'부하 하나를 내준다',desc:'경계 −14 · 동요 +4 · 부하 믿음 −6',kind:'harsh',out:'가장 믿음이 약한 사람이 차에 올랐다. 남은 이들은 아무도 그의 이름을 부르지 않았다.',fx:function(s){giveUpCrew(s);adjv(s,'heat',-14);adjv(s,'anx',4);}}
   ]},
-  {minDay:6,title:'신문 기사',when:function(s){return s.dread>=62;},
+  {minDay:5,title:'신문 기사',when:function(s){return s.dread>=62;},
    text:'조간 사회면 구석에 우리 구역의 이름이 실렸다. "특정 조직의 영향력 확대 우려". 이웃 조직들은 그 신문을 한 부씩 사서 서랍에 넣었다.',
    choices:[
     {label:'정정 보도를 요구한다',desc:'¥−12 · 위세 −3 · 경계 −5',cost:12,kind:'neutral',out:'작은 정정 기사가 났다. 기사 속 우리는 조금 덜 무서웠다.',fx:function(s){s.money-=12;adjv(s,'dread',-3);adjv(s,'heat',-5);}},
     {label:'그대로 둔다',desc:'위세 +3 · 경계 +5',kind:'neutral',out:'기사는 잊히지 않았다. 사람들은 우리 앞에서 목소리를 낮췄다.',fx:function(s){adjv(s,'dread',3);adjv(s,'heat',5);}},
     {label:'기자를 찾아간다',desc:'위세 +8 · 경계 +8 · 동요 +3',kind:'harsh',out:'기자는 다음 날부터 출근하지 않았다. 신문사는 사과문을 냈고, 그 사과문이 더 큰 소문이 되었다.',fx:function(s){adjv(s,'dread',8);adjv(s,'heat',8);adjv(s,'anx',3);}}
   ]},
-  {minDay:7,title:'빈 금고',when:function(s){return s.money<=6;},
+  {minDay:5,title:'빈 금고',when:function(s){return s.money<=6;},
    text:'금고를 열었다. 먼지 낀 바닥이 보인다. 월급날은 사흘 뒤다. 부하들은 아직 아무 말도 하지 않는다. 말을 하지 않는 것이 가장 위험한 때다.',
    choices:[
     {label:'가게마다 특별 모금',desc:'¥+18 · 위세 +3 · 경계 +4',kind:'harsh',out:'가게 주인들은 말없이 서랍을 열었다. 그 밤 골목의 불빛이 일찍 꺼졌다.',fx:function(s){s.money+=18;adjv(s,'dread',3);adjv(s,'heat',4);}},
     {label:'사채를 쓴다',desc:'¥+30 · 부하 믿음 −5 · 동요 +4',kind:'neutral',out:'돈은 급하게 들어왔다. 갚는 날짜가 적힌 종이는 서랍 깊이 넣어 두었다.',fx:function(s){s.money+=30;loyAll(s,-5);adjv(s,'anx',4);}},
     {label:'버틴다',desc:'위세 −2 · 동요 −2',kind:'mercy',out:'아무것도 하지 않았다. 부하들은 서로의 얼굴을 한 번씩 쳐다보았다.',fx:function(s){adjv(s,'dread',-2);adjv(s,'anx',-2);}}
   ]},
-  {minDay:8,title:'이웃의 사자',when:function(s){return(s.heat>=52||s.grudge[1]>=2||s.grudge[2]>=2||s.grudge[3]>=2)&&[1,2,3].some(function(r){return!s.dead[r]&&!hasPact(s,0,r);});},
+  {minDay:6,title:'이웃의 사자',when:function(s){return(s.heat>=52||s.grudge[1]>=2||s.grudge[2]>=2||s.grudge[3]>=2)&&[1,2,3].some(function(r){return!s.dead[r]&&!hasPact(s,0,r);});},
    text:function(s,p){return(p&&p.r?ORGS[p.r].name:'이웃 조직')+'에서 사람이 왔다. 정장은 단정하고 손에는 아무것도 들지 않았다. 술자리를 청한다고 했다. 어느 쪽 장소에서 열지는 말하지 않았다.';},
    choices:[
     {label:'응한다',desc:'¥−10 · 경계 −12 · 위세 −4 · 호감 +10 · 그쪽 하룻밤 휴전',cost:10,kind:'neutral',out:'술잔은 두 번 돌았다. 아무도 먼저 잔을 비우지 않았다.',fx:function(s,p){s.money-=10;adjv(s,'heat',-12);adjv(s,'dread',-4);if(p&&p.r){s.grudge[p.r]=0;addRel(s,p.r,0,10);if(!hasPact(s,0,p.r))addPact(s,0,p.r,'truce',1);}}},
@@ -201,8 +201,8 @@ function actScene(s,ci){
 function echoFor(s){
   var m=s.stats.mercy,h=s.stats.harsh;
   if(m+h===0)return'';
-  if(m>=3&&h<=1)return'당신이 봐준 사람들은 당신 편이 되지 않았다. 다만 당신의 이름이 나올 때 목소리가 조금 낮아졌다.';
-  if(h>=3&&m<=1)return'당신 앞에서는 아무도 울지 않았다. 울음은 언제나 문이 닫힌 뒤에 시작되었다.';
+  if(m>=2&&h<=1)return'당신이 봐준 사람들은 당신 편이 되지 않았다. 다만 당신의 이름이 나올 때 목소리가 조금 낮아졌다.';
+  if(h>=2&&m<=1)return'당신 앞에서는 아무도 울지 않았다. 울음은 언제나 문이 닫힌 뒤에 시작되었다.';
   return'때로는 봐주고 때로는 걷었다. 그들은 당신이 어느 쪽인지 끝내 알지 못했고, 그래서 더 조심스러웠다.';
 }
 
@@ -271,6 +271,9 @@ function rnd(s){
   t=(t+Math.imul(t^(t>>>7),61|t))^t;
   return((t^(t>>>14))>>>0)/4294967296;
 }
+/* 화면 위에 잠깐 떴다 사라지는 알림 (규칙 쪽에서 쌓고, 화면이 비운다) */
+var NOTES=[];
+function note(t,c){NOTES.push({t:t,c:c||''});if(NOTES.length>10)NOTES.shift();}
 function say(s,text,tone){
   s.log.push({day:s.day,text:text,tone:tone||''});
   if(s.log.length>260)s.log.splice(0,s.log.length-260);
@@ -287,7 +290,7 @@ function newGame(seed,mseed,mw){
   if(mseed===undefined)mseed=seed;
   if(!mw)mw=(typeof mapWidth==='function')?mapWidth():420;
   genMap(mseed,mw);
-  var s={seed:seed,mseed:mseed,mw:MAP_W,rs:seed|0,day:1,ap:AP_MAX,dread:42,heat:14,money:30,
+  var s={seed:seed,mseed:mseed,mw:MAP_W,rs:seed|0,day:1,ap:AP_MAX,dread:42,heat:14,money:40,mile:[],seenAt:0,
     tiles:NODES.map(function(t){return{id:t.id,kind:t.kind,name:t.name,type:t.type,inc:t.inc,exp:t.exp,cap:t.cap,hq:t.hq,owner:t.owner,men:t.men};}),
     tech:[],bubbles:[],done:{},rules:[],pend:null,sceneOrder:[0,1,2,3,4],anx:20,crew:CREW.map(function(c){return{loy:c.loy,alive:true};}),grudge:[0,0,0,0],dead:[false,false,false,false],rel:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],aff:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],pacts:[],offers:[],news:[],ambush:[],cool:[0,0,0,0],refused:[0,0,0,0],hit:[-9,-9,-9,-9],
     log:[],lastSay:'',over:null,lastBlow:null,lostTonight:0,focus:-1,diff:DIFF,streak:0,bestStreak:0,goal:null,goalsDone:0,
@@ -367,13 +370,13 @@ var TAUNT={
 };
 function titleFor(s){
   var st=s.stats;
-  if(st.examples>=5)return'피 냄새를 달고 다닌 사람';
+  if(st.examples>=3)return'피 냄새를 달고 다닌 사람';
   if(st.strikes>=2)return'연합의 표적';
   if(st.betrayedBy>=2)return'등에 칼을 맞은 사람';
-  if(st.alliesFormed>=3)return'손을 잡은 사람';
-  if(s.bestStreak>=4)return'멈추지 않은 사람';
-  if(s.goalsDone>=4)return'장부를 믿은 사람';
-  if(st.mercy>=4)return'봐주는 사람';
+  if(st.alliesFormed>=2)return'손을 잡은 사람';
+  if(s.bestStreak>=3)return'멈추지 않은 사람';
+  if(s.goalsDone>=2)return'장부를 믿은 사람';
+  if(st.mercy>=2)return'봐주는 사람';
   if(st.betrayed>=2)return'등을 많이 본 사람';
   return'이름 없는 사람';
 }
@@ -449,17 +452,19 @@ function actMove(s,from,to,mode){
     else say(s,F.name+'에서 '+ro(T.name)+' '+A+'명을 옮겼다.');
     return{ok:true,move:true,A:A,from:from,to:to};
   }
-  var oid=T.owner,res=resolve(s,from,to,A,{bonus:(crewPerk(s,0)?1.1:1)*(s.anx>=70?0.9:1)*(hasTech(s,'b1')?1.08:1)*(hasTech(s,'b3')?1.12:1)*(hasTech(s,'b6')?1.05:1),lossMul:hasTech(s,'b2')?0.8:1});
+  var oid=T.owner,loot=0,res=resolve(s,from,to,A,{bonus:(crewPerk(s,0)?1.1:1)*(s.anx>=70?0.9:1)*(hasTech(s,'b1')?1.08:1)*(hasTech(s,'b3')?1.12:1)*(hasTech(s,'b6')?1.05:1),lossMul:hasTech(s,'b2')?0.8:1});
   s.ap--;
   if(res.win){
     s.stats.taken++;s.streak++;if(s.streak>s.bestStreak)s.bestStreak=s.streak;
-    if(s.streak>=2){var sb=Math.min(6,(s.streak-1)*2);adjv(s,'dread',sb);say(s,'연승. 기세가 붙었다. (위세 +'+sb+')','good');}
+    if(s.streak>=2){var sb=Math.min(6,(s.streak-1)*2);adjv(s,'dread',sb);say(s,'연승. 기세가 붙었다. (위세 +'+sb+')','good');note('연승 ×'+s.streak+' · 위세 +'+sb,'combo');}
     if(oid===-1){
       adjv(s,'dread',2);adjv(s,'heat',Math.max(0,T.exp-(hasTech(s,'c6')?1:0)));
       say(s,eul(T.name)+' 차지했다. ('+A+'명 투입, '+res.lossA+'명 잃음)','good');
     }else{
       adjv(s,'dread',6);adjv(s,'heat',Math.max(0,4+T.exp-(hasTech(s,'c6')?1:0)));s.grudge[oid]+=2;hurt(s,oid,0,12);
       say(s,ORGS[oid].short+'의 '+eul(T.name)+' 빼앗았다. ('+res.lossA+'명 잃음)','good');
+      loot=3+tileInc(s,T);s.money+=loot;say(s,'전리품을 챙겼다. (+¥'+loot+')','good');note('전리품 +¥'+loot,'gold');
+      if(res.lossA<=0){adjv(s,'dread',3);say(s,'피해 없는 대승. 소문이 퍼졌다. (위세 +3)','good');note('대승! 위세 +3','combo');}
       afterCapture(s,to,oid);
       if(s.dead[oid]){
         adjv(s,'dread',8);adjv(s,'heat',8);
@@ -472,7 +477,8 @@ function actMove(s,from,to,mode){
     if(oid===-1){adjv(s,'dread',-3);say(s,T.name+' 점령에 실패했다. '+res.lossA+'명을 잃었다.','bad');}
     else{adjv(s,'dread',-5);adjv(s,'heat',1);s.grudge[oid]+=1;hurt(s,oid,0,4);say(s,ORGS[oid].short+'의 '+T.name+' 공격이 막혔다. '+res.lossA+'명을 잃었다.','bad');}
   }
-  return{ok:true,win:res.win,A:A,from:from,to:to,lossA:res.lossA};
+  if(res.win)checkMiles(s);
+  return{ok:true,win:res.win,A:A,from:from,to:to,lossA:res.lossA,loot:loot};
 }
 function recruitAmt(s){return(hasTech(s,'a3')?3:2)+(hasTech(s,'b6')?1:0)+Math.min(3,Math.floor(owned(s,0).length/4));}
 function growTarget(t){return Math.ceil(t.cap*(t.hq?0.7:0.5));}
@@ -558,9 +564,9 @@ function crewNight(s){
     if(c.loy<25&&rnd(s)<0.4)crewBetray(s,i);
   });
 }
-function canLeave(s){return!s.over&&s.day>=8&&s.money>=80;}
+function canLeave(s){return!s.over&&s.day>=6&&s.money>=60;}
 function actLeave(s){
-  if(!canLeave(s))return fail('아직은 발을 뺄 수 없다. (8번째 밤부터, ¥80)');
+  if(!canLeave(s))return fail('아직은 발을 뺄 수 없다. (6번째 밤부터, ¥60)');
   s.money=0;s.over={type:'leave'};
   say(s,'봉투를 두고 문을 나섰다.','big');
   return{ok:true};
@@ -724,8 +730,8 @@ function rivalTurn(s,r){
   var amb=s.ambush.filter(function(q){return q.by===r;});
   s.ambush=s.ambush.filter(function(q){return q.by!==r;});
   amb.forEach(function(q){if(s.dead[r]||(q.on>0&&s.dead[q.on]))return;if(surpriseAttack(s,r,q.on))acted=true;});
-  if(!hasPact(s,r,0)&&!acted){
-    var p=(r===3)?0.5:pBite(s,r);
+  if(!hasPact(s,r,0)&&!acted&&s.day>GRACE_NIGHTS){
+    var p=Math.min(0.95,((r===3)?0.5:pBite(s,r))*RAID_MUL);
     if(rnd(s)<p){
       var mm=clamp((s.dread-25)/12,-2,3)+(r===1?1:0)-(r===2?Math.min(2,s.grudge[2]):0);
       var pr2=(r===3)?pickWeakest(s,r):pickAttack(s,r,function(v){return v.owner===0;},{minMargin:mm});
@@ -780,8 +786,10 @@ function budget(s){
 }
 function endNight(s){
   if(s.over||s.pend)return;
+  var auto=0;s.bubbles.forEach(function(b){if(b.kind==='cash')auto+=2;});
   s.bubbles=[];
   s.lostTonight=0;s.focus=-1;s.streak=0;
+  if(auto>0){s.money+=auto;s.stats.bubbles++;}
   say(s,'밤이 깊었다','sep');
   var grown=0;
   var own0=owned(s,0),gn=Math.floor(own0.length/5);
@@ -799,6 +807,8 @@ function endNight(s){
   }
   var mine=owned(s,0),bg=budget(s),inc=bg.inc,up=bg.up;
   s.money+=inc-up;
+  if(auto>0)say(s,'금고지기가 놓친 잔돈을 거뒀다. (+¥'+auto+')','dim');
+  if(s.money>=0)note((inc-up>=0?'밤 수입 +¥':'밤 수입 −¥')+Math.abs(inc-up),inc-up>=0?'gold':'bad');
   if(s.money<0){
     var short=-s.money;s.money=0;
     var gone=0;
@@ -859,7 +869,7 @@ function endNight(s){
     s.over={type:'fall',cause:s.lastBlow||'bite'};
     return;
   }
-  checkGoal(s);
+  checkGoal(s);checkMiles(s);
   s.day++;s.ap=AP_MAX;
   if(s.day>MAXDAY)s.over={type:'survive'};
   queueDecision(s);
@@ -876,10 +886,10 @@ function endingFor(s){
   if(o.type==='leave')return{kicker:'탈출',title:'발을 씻다',text:'문을 나서며 뒤를 돌아보지 않았다. 돌아보면 누군가 서 있을까 봐. 이 세계는 나가는 사람에게도 값을 받는다.'};
   if(o.type==='alone')return{kicker:'정상',title:'혼자 남은 반도',text:'마지막 간판이 내려갔다. 이제 아무도 손잡지 않는다. 손잡을 상대가 없기 때문이다. 이 땅의 규칙은 당신의 기분이다.'};
   var live=[1,2,3].filter(function(r){return!s.dead[r];});
-  if(live.length>=2&&live.every(function(r){return pactKind(s,0,r)==='ally';}))return{kicker:'서른 밤',title:'한 식탁',text:'모든 조직이 같은 식탁에 앉았다. 서로의 손을 볼 수 있는 자리에서. 이 평화가 얼마나 갈지는 아무도 묻지 않았다. 묻는 순간 깨질 것을 알기 때문이다.'};
-  if(s.goalsDone>=4&&m>=6)return{kicker:'서른 밤',title:'계산된 밤',text:'모든 밤을 장부에 적었다. 예보를 읽고, 목표를 세우고, 하나씩 지워 나갔다. 이 세계에서 가장 드문 것은 용기가 아니라 계획이다.'};
-  if(s.stats.mercy>=4&&s.stats.harsh<=1&&s.stats.examples===0)return{kicker:'서른 밤',title:'느슨하게 쥔 주먹',text:'주먹을 세게 쥔 적이 거의 없다. 사람들은 그것을 약함이라 불렀지만, 서른 밤을 버틴 것은 그 느슨한 손이었다.'};
-  if(m>=13&&s.dread>=60)return{kicker:'서른 밤',title:'혼자 앉은 상석',text:'가장 높은 자리에 앉았다. 술잔을 건넬 사람은 없다. 잔에 입을 대기 전에 당신은 매번 잔을 한 번 더 본다.'};
-  if(m>=8&&s.heat<=45)return{kicker:'서른 밤',title:'살얼음 위의 균형',text:'아무도 이기지 못했고 아무도 무너지지 않았다. 이 균형은 누구의 것도 아니고, 누구든 먼저 발을 떼면 깨진다.'};
-  return{kicker:'서른 밤',title:'버틴 사람',text:'아직 살아 있다. 이 세계에서는 그것이 이력서의 전부다.'};
+  if(live.length>=2&&live.every(function(r){return pactKind(s,0,r)==='ally';}))return{kicker:MAXDAY+'밤',title:'한 식탁',text:'모든 조직이 같은 식탁에 앉았다. 서로의 손을 볼 수 있는 자리에서. 이 평화가 얼마나 갈지는 아무도 묻지 않았다. 묻는 순간 깨질 것을 알기 때문이다.'};
+  if(s.goalsDone>=2&&m>=6)return{kicker:MAXDAY+'밤',title:'계산된 밤',text:'모든 밤을 장부에 적었다. 예보를 읽고, 목표를 세우고, 하나씩 지워 나갔다. 이 세계에서 가장 드문 것은 용기가 아니라 계획이다.'};
+  if(s.stats.mercy>=2&&s.stats.harsh<=1&&s.stats.examples===0)return{kicker:MAXDAY+'밤',title:'느슨하게 쥔 주먹',text:'주먹을 세게 쥔 적이 거의 없다. 사람들은 그것을 약함이라 불렀지만, 끝까지 버틴 것은 그 느슨한 손이었다.'};
+  if(m>=10&&s.dread>=60)return{kicker:MAXDAY+'밤',title:'혼자 앉은 상석',text:'가장 높은 자리에 앉았다. 술잔을 건넬 사람은 없다. 잔에 입을 대기 전에 당신은 매번 잔을 한 번 더 본다.'};
+  if(m>=8&&s.heat<=45)return{kicker:MAXDAY+'밤',title:'살얼음 위의 균형',text:'아무도 이기지 못했고 아무도 무너지지 않았다. 이 균형은 누구의 것도 아니고, 누구든 먼저 발을 떼면 깨진다.'};
+  return{kicker:MAXDAY+'밤',title:'버틴 사람',text:'아직 살아 있다. 이 세계에서는 그것이 이력서의 전부다.'};
 }

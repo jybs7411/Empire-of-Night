@@ -1,13 +1,13 @@
 /* ========== 모바일 화면 · 설정 · 소리 ========== */
 var $=function(id){return document.getElementById(id);};
-var G=null,SAVE_KEY='nb-save-v3',SET_KEY='nb-set-v2',SEEN_KEY='nb-seen-v3';
-var set={sound:true,haptic:true,diff:0,anim:true};
+var G=null,SAVE_KEY='nb-save-v4',SET_KEY='nb-set-v2',SEEN_KEY='nb-seen-v4',BEST_KEY='nb-best-v1';
+var set={sound:true,haptic:true,diff:0,anim:true,fast:false,autoEv:false};
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
 (function(){var r=lsGet(SET_KEY);if(r){try{var o=JSON.parse(r);for(var k in o)set[k]=o[k];}catch(e){}}})();
 function saveSet(){lsSet(SET_KEY,JSON.stringify(set));}
-function saveGame(){if(G&&!G.over)lsSet(SAVE_KEY,JSON.stringify(G));else lsDel(SAVE_KEY);}
+function saveGame(){if(G&&!G.over){G.seenAt=Date.now();lsSet(SAVE_KEY,JSON.stringify(G));}else lsDel(SAVE_KEY);}
 
 var AC=null;
 function tone(f,d,type,vol,when){
@@ -34,10 +34,10 @@ var SFX={
 function sfx(n){try{if(SFX[n])SFX[n]();}catch(e){}}
 function buzz(p){if(!set.haptic)return;try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 
-var ui={busy:false,hold:null,peek:-1,sel:-1,mode:'move',amt:'all',msg:'',err:false,flash:{},sheet:null,more:'rules',page:0,pops:[],shot:null,recap:null,confirmNew:false,focus:null,ops:'over',tsel:null,gauge:'dread',confirmBreak:-1,intro:false};
+var ui={busy:false,hold:null,peek:-1,sel:-1,mode:'move',amt:'all',msg:'',err:false,flash:{},sheet:null,more:'rules',page:0,pops:[],shot:null,recap:null,confirmNew:false,focus:null,ops:'over',tsel:null,gauge:'dread',confirmBreak:-1,intro:false,auto:false,mShown:null,rec:0,recKey:'',recorded:-1};
 var prevV={dread:null,heat:null,anx:null};
 var undoStack=[];
-var TIPS=['지도는 판마다 새로 만들어집니다. 시장·술집·유흥가·파친코는 조직의 돈줄입니다. 지켜 내세요.','이웃 땅을 칠 땐 "우세"가 뜬 곳을 노리세요. 산과 다리목은 지키는 쪽이 유리합니다.','이웃도 서로 손잡고 배신합니다. 외교 탭에서 휴전을 맺고 동맹을 노려 보세요.'];
+var TIPS=['막막하면 오른쪽 아래 초록 "알아서"를 누르세요. 참모가 판을 대신 굴리고, 이벤트가 오면 멈춥니다.','시장·술집·유흥가·파친코는 돈줄입니다. 이웃 땅을 빼앗으면 전리품도 챙겨요.','땅 5·8·11곳을 넓히면 도장 보상이 나옵니다. 외교 탭에서 휴전도 맺어 보세요.'];
 /* 조직 표식: 0 불꽃 · 1 마름모 · 2 초승달 · 3 송곳니 */
 var MARKS=[
   {n:'불꽃',d:'M0 -8C2 -4 5.5 -2 5.5 2.2A5.5 5.5 0 0 1 -5.5 2.2C-5.5 -0.2 -4 -1.8 -2.6 -3.6C-2.4 -1.6 -1.2 -1.6 -0.6 -3.2C-0.2 -4.6 -0.4 -6.4 0 -8ZM0 7.4C-1.7 7.4 -2.8 6.2 -2.8 4.6C-2.8 3 -1.4 2 0 0.6C1.4 2 2.8 3 2.8 4.6C2.8 6.2 1.7 7.4 0 7.4Z'},

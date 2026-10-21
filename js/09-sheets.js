@@ -3,7 +3,8 @@ var SHEET_TITLES={dip:'외교',crew:'부하',log:'밤의 기록',more:'더보기
 var OPS_TABS=[['over','개요'],['eco','기반'],['cover','은폐'],['force','무력']];
 var OPS_BR={eco:0,force:1,cover:2};
 var RULES_TXT=[
-  '<b>목표</b>는 서른 밤을 버티며 본거지를 지키는 것이다. 밤마다 <b>수</b>가 세 번 있다. 내 땅을 눌러 병력을 고르고, 붙은 땅을 눌러 보낸다. <b>전부</b>는 한 명만 남기고 모두, <b>절반</b>은 반만 보낸다.',
+  '<b>목표</b>는 '+MAXDAY+'밤을 버티며 본거지를 지키고 땅을 넓히는 것이다. 한 판은 10분 남짓. 밤마다 <b>수</b>가 세 번 있다. 내 땅을 눌러 병력을 고르고, 붙은 땅을 눌러 보낸다. <b>전부</b>는 한 명만 남기고 모두, <b>절반</b>은 반만 보낸다.',
+  '<b>알아서</b>를 누르면 참모가 수를 대신 두고 밤을 넘긴다. 땅 넓히기·모집·휴전·강화까지 맡길 수 있고, 이벤트가 오면 멈춘다. 직접 화면을 만지면 자동은 꺼진다. 설정에서 이벤트까지 참모에게 맡기도록 고를 수 있다.',
   '화면 오른쪽 세 게이지가 이 게임의 핵심이다. <b>위세</b>(이웃이 우리를 무서워하는 정도), <b>경계</b>(이웃이 우리를 위협으로 보는 정도), <b>동요</b>(우리 조직 안의 불안). 게이지를 누르면 올리고 내리는 법이 나온다.',
   '<b>지도는 새 판마다 새로 만들어진다.</b> 같은 지도로 다시 하려면 설정에서 고른다. 땅을 누르면 지형과 쓰임이 아래 정보 줄에 나온다.',
   '<b>산악</b>은 방어 +25%, 수입 −1. <b>숲</b>은 방어 +10%에 눈에 띄지 않아 차지해도 경계가 오르지 않는다. <b>평야</b>는 수입이 크다. <b>강</b>은 건널 수 없고 <b>다리목</b>(방어 +20%)으로만 지난다. <b>시장·술집·유흥가·파친코·항구</b>는 수입이 큰 돈줄이니 우선 차지하자.',
@@ -19,6 +20,7 @@ var RULES_TXT=[
   '<b>작전실</b>의 기반·은폐·무력 세 갈래 나무에서 조직을 강화한다. 자금으로 사고 수는 쓰지 않는다. 무력은 강하지만 눈에 띈다.',
   '지도 위 <b>육각 ¥ 표시</b>는 그 밤에만 거둘 수 있는 돈이다. 붉은 것은 더 크지만 눈에 띈다. 연달아 땅을 차지하면 <b>기세</b>가 붙어 위세가 더 오른다.',
   '5밤마다 <b>목표</b>가 주어진다. 이루면 자금과 위세를 얻고, 놓쳐도 벌은 없다. 지도 아래 <b>참모</b>가 지금 할 일을 한 줄로 알려 준다.',
+  '이웃 땅을 빼앗으면 <b>전리품</b>(¥)이 들어오고, 피해 없이 이기면 <b>대승</b>으로 위세가 더 오른다. 땅이 5·8·11곳이 되면 <b>도장</b> 보상이 나온다. 놓친 금빛 잔돈은 금고지기가 절반을 거둔다. 앱을 닫았다 돌아오면 그동안 <b>금고에 돈이 쌓여</b> 있다.',
   '<b>되돌리기</b>는 그 밤에 둔 수를 물린다. 본가를 잃으면 끝이다. 적의 본거지를 점령하면 그 조직은 무너진다.'
 ];
 var RULE_PAGE=4;
@@ -36,7 +38,10 @@ var TERMS=[
   ['본보기','이웃 땅에 힘을 보이는 행동. 위세는 크게 오르지만 경계·동요·원한도 함께 오른다.'],
   ['연회','돈으로 위세를 사는 행동. 가볍게 위세를 올리고 싶을 때 쓴다.'],
   ['숨 죽이기','조용히 지내며 경계와 동요를 내리는 행동. 위세도 조금 내려간다.'],
-  ['기세','땅을 연달아 차지하면 붙는 보너스. 한 번 막히면 끊긴다.']
+  ['기세','땅을 연달아 차지하면 붙는 보너스. 한 번 막히면 끊긴다.'],
+  ['알아서','참모가 수를 대신 두고 밤을 넘기는 자동 진행. 이벤트가 오면 멈춘다.'],
+  ['전리품','이웃 땅을 빼앗을 때 들어오는 돈. 피해 없이 이기면(대승) 위세도 오른다.'],
+  ['도장','땅이 5·8·11곳이 될 때 한 번씩 받는 보상.']
 ];
 
 function sheetCrew(){
@@ -159,7 +164,7 @@ function sheetMore(){
   }else if(ui.more==='terms'){
     TERMS.forEach(function(t){h+='<p class="law"><b>'+t[0]+'</b><small>'+t[1]+'</small></p>';});
   }else if(ui.more==='laws'){
-    if(!G.rules.length)h+='<p class="empty law">아직 세운 법이 없다. 6번째 밤에 처음으로 정한다.</p>';
+    if(!G.rules.length)h+='<p class="empty law">아직 세운 법이 없다. '+RULE_DAYS[0]+'번째 밤에 처음으로 정한다.</p>';
     else G.rules.forEach(function(id){var r=RULES[id];h+='<p class="law"><b>'+r.name+'</b><small>'+r.fx+'</small></p>';});
     h+='<p class="tnote">목표 달성 '+G.goalsDone+'회 · 최장 연승 '+G.bestStreak+'회 · 본보기 '+G.stats.examples+'회 · 맺은 약속 '+G.stats.pactsMade+'회 · 깨진 약속 '+G.stats.pactBroken+'회</p>';
   }else{
@@ -167,11 +172,13 @@ function sheetMore(){
     h+=row('효과음','','<button type="button" class="tg" data-set="sound" aria-pressed="'+set.sound+'">'+(set.sound?'켜짐':'꺼짐')+'</button>');
     h+=row('진동','지원하는 기기에서만','<button type="button" class="tg" data-set="haptic" aria-pressed="'+set.haptic+'">'+(set.haptic?'켜짐':'꺼짐')+'</button>');
     h+=row('전투 연출','병력이 날아가 부딪히는 장면','<button type="button" class="tg" data-set="anim" aria-pressed="'+(set.anim!==false)+'">'+(set.anim!==false?'켜짐':'꺼짐')+'</button>');
+    h+=row('빠른 진행','알아서·전투 연출을 더 빠르게','<button type="button" class="tg" data-flag="fast" aria-pressed="'+!!set.fast+'">'+(set.fast?'켜짐':'꺼짐')+'</button>');
+    h+=row('이벤트도 알아서','알아서 중 이벤트를 참모 추천대로 정한다','<button type="button" class="tg" data-flag="autoEv" aria-pressed="'+!!set.autoEv+'">'+(set.autoEv?'켜짐':'꺼짐')+'</button>');
     h+=row('처음 안내','게임 방법을 다시 본다','<button type="button" class="tg" data-intro="1">보기</button>');
     h+=row('지도 No.'+String(G.mseed%10000),'같은 지도로 처음부터 다시 · 지금 판은 사라진다','<button type="button" class="tg" data-again="1">다시</button>');
     h+=row('난이도','다음 새 게임부터 적용 · 어려움은 수입 −10%, 이웃 증원 증가',
       '<div class="seg" style="width:128px;height:34px"><button type="button" data-diff="0" aria-pressed="'+(set.diff===0)+'">보통</button><button type="button" data-diff="1" aria-pressed="'+(set.diff===1)+'">어려움</button></div>');
-    h+=row('발을 씻는다','8번째 밤부터 · ¥80','<button type="button" class="tg" data-leave="1"'+(canLeave(G)?'':' disabled')+'>떠난다</button>');
+    h+=row('발을 씻는다','6번째 밤부터 · ¥60','<button type="button" class="tg" data-leave="1"'+(canLeave(G)?'':' disabled')+'>떠난다</button>');
     h+=row('새 게임',ui.confirmNew?'지금 판은 사라진다. 한 번 더 누르면 시작한다.':'지금 판을 접고 처음부터','<button type="button" class="tg" data-new="1" aria-pressed="'+ui.confirmNew+'">'+(ui.confirmNew?'정말 시작':'새로 시작')+'</button>');
   }
   return h;
@@ -185,7 +192,7 @@ function opsOverview(){
   var fist='';for(var i=0;i<5;i++)fist+='<svg class="coh'+(i<cohesion?' on':'')+'" viewBox="0 0 24 24" aria-hidden="true">'+GICON.anx+'</svg>';
   var coh=G.anx>=70?'조직이 흔들린다. 가면이 갈라지고 있다.':(G.anx>=40?'센 척이 점점 무겁다. 틈이 보이기 시작한다.':'조직은 단단하다. 동요가 거의 없다.');
   return'<div class="ov"><div class="hero-wrap">'+heroSvg()+'<span class="hero-tag">우리 조직</span></div>'+
-    '<div class="ocards"><div class="ocard"><h3>밤의 균형</h3>'+(best>=0?'<div class="opt">'+crewBust(best)+'</div>':'')+'<div class="orow"><span>임무</span><b>'+(goal?esc(goal.text):'서른 밤을 버틴다')+'</b></div>'+
+    '<div class="ocards"><div class="ocard"><h3>밤의 균형</h3>'+(best>=0?'<div class="opt">'+crewBust(best)+'</div>':'')+'<div class="orow"><span>임무</span><b>'+(goal?esc(goal.text):MAXDAY+'밤을 버틴다')+'</b></div>'+
     '<div class="orow"><span>기간</span><b>'+Math.min(G.day,MAXDAY)+'번째 밤 · 남은 '+left+'밤</b></div>'+
     '<div class="orow"><span>오른팔</span><b>'+(best>=0?CREW[best].name+' ('+CREW[best].role+')':'없음')+'</b></div>'+
     '<div class="orow"><span>밤 예산</span><b>수입 ¥'+bg.inc+' − 유지비 ¥'+bg.up+' = <em class="'+(bg.net>=0?'pos':'neg')+'">'+(bg.net>=0?'+':'−')+'¥'+Math.abs(bg.net)+'</em></b></div></div>'+

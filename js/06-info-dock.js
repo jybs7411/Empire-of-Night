@@ -43,7 +43,13 @@ function renderActions(){
   $('bFeast').title='돈으로 사는 두려움. 위세 +10 · 경계 +4 · 동요 +3 · 수 1 · ¥10';
   $('bLie').disabled=!ap;
   $('bLie').title='숨을 죽이고 조용히 지냅니다. 위세 −8 · 경계 −10 · 동요 −6 · 수 1';
-  $('bUndo').disabled=!(undoStack.length&&!over&&!G.pend);
+  $('bUndo').disabled=!(undoStack.length&&!over&&!G.pend&&!ui.auto);
+  var au=$('bAuto');
+  au.disabled=over;
+  au.setAttribute('aria-pressed',ui.auto?'true':'false');
+  au.title=ui.auto?'자동 진행을 멈추고 직접 둡니다':'참모가 수를 대신 두고 밤을 넘깁니다. 이벤트가 오면 멈춥니다';
+  au.querySelector('b').textContent=ui.auto?'멈춤':'알아서';
+  au.querySelector('svg').innerHTML=ui.auto?'<rect x="6" y="6" width="12" height="12" rx="1.5"/>':'<path d="M7 4.5v15l12-7.5z"/>';
   $('bEnd').disabled=over||!!G.pend;
   $('bEnd').className='primary'+((G.ap===0&&!over&&!G.pend)?' ready':'');
   document.querySelectorAll('#amt button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.amt===ui.amt?'true':'false');});

@@ -1,6 +1,6 @@
 /* ========== 행동 처리 ========== */
 function render(){
-  renderTop();renderGauges();renderTick();renderAdvisor();renderMap();renderInfo();renderActions();renderTabs();renderSheet();renderModal();renderRecap();saveGame();
+  renderTop();renderGauges();renderTick();renderAdvisor();renderMap();renderInfo();renderActions();renderTabs();renderSheet();renderModal();renderRecap();saveGame();drainNotes();
 }
 var fxT=null,flT=null;
 function fxClear(){clearTimeout(fxT);fxT=setTimeout(function(){ui.pops=[];ui.shot=null;renderMap();},1500);}
@@ -10,7 +10,7 @@ function snapHold(){var h={};G.tiles.forEach(function(t){h[t.id]={owner:t.owner,
 function outcome(res,kind,animated){
   if(res.from!==undefined){
     if(res.move){if(!animated)ui.shot={from:res.from,to:res.to,c:'mv'};ui.pops.push({id:res.to,t:'+'+res.A,c:'mv'});sfx('tap');}
-    else if(res.win){if(!animated)ui.shot={from:res.from,to:res.to,c:'win'};ui.pops.push({id:res.to,t:'점령',c:'win'});sfx('win');buzz([20,40,20]);}
+    else if(res.win){if(!animated)ui.shot={from:res.from,to:res.to,c:'win'};ui.pops.push({id:res.to,t:'점령'+(res.loot?' +¥'+res.loot:''),c:'win'});sfx('win');buzz([20,40,20]);}
     else{if(!animated)ui.shot={from:res.from,to:res.to,c:'lose'};ui.pops.push({id:res.to,t:'막힘 −'+res.lossA,c:'lose'});sfx('lose');buzz(70);shake();}
   }else sfx(kind||'tap');
   if(G.over){ui.mode='move';ui.sheet=null;}
@@ -39,6 +39,7 @@ function act(fn,kind){
   var res=fn();
   if(res.ok){undoStack.push(before);if(undoStack.length>12)undoStack.shift();}
   afterAct(res,kind,hold);
+  return res;
 }
 function doUndo(){
   finishAnim();
@@ -72,7 +73,7 @@ function endTonight(){
   if(G.over||G.pend)return;
   finishAnim();
   var hold=snapHold();
-  var before=G.tiles.map(function(t){return t.owner;}),logLen=G.log.length;
+  var before=G.tiles.map(function(t){return t.owner;}),logLen=G.log.length,moneyBefore=G.money;
   ui.mode='move';ui.sheet=null;undoStack=[];ui.pops=[];ui.shot=null;ui.peek=-1;
   BATTLES.length=0;
   endNight(G);
@@ -85,9 +86,12 @@ function endTonight(){
   if(ui.sel>=0&&G.tiles[ui.sel].owner!==0)ui.sel=-1;
   setHint('',false);
   if(!G.over){
-    var lines=G.log.slice(logLen).filter(function(e){return e.tone!=='sep';}).slice(0,9);
+    var lines=G.log.slice(logLen).filter(function(e){return e.tone!=='sep';});
+    /* 중요한 소식(잃은 땅 · 연합 · 배신 · 좋은 소식)을 먼저 6줄까지 고르고, 원래 순서로 되돌린다 */
+    var rank=function(e){return e.tone==='bad'?0:(e.tone==='big'?1:(e.tone==='good'?2:3));};
+    lines=lines.map(function(e,i){return{e:e,i:i};}).sort(function(a,b){return rank(a.e)-rank(b.e)||a.i-b.i;}).slice(0,6).sort(function(a,b){return a.i-b.i;}).map(function(x){return x.e;});
     var bet=lines.some(function(e){return/배신!|돌아섰다/.test(e.text);}),ally=lines.some(function(e){return/동맹을 맺었다|손을 잡았다|휴전했다/.test(e.text);});
-    rc={day:G.day-1,title:bet?'배신의 밤':(lost>0?'빼앗긴 밤':(ally?'손잡는 밤':(G.heat>=55?'숨 막히는 밤':'지나간 밤'))),lines:lines};
+    rc={day:G.day-1,gain:G.money-moneyBefore,land:owned(G,0).length,men:owned(G,0).reduce(function(a,t){return a+t.men;},0),title:bet?'배신의 밤':(lost>0?'빼앗긴 밤':(ally?'손잡는 밤':(G.heat>=55?'숨 막히는 밤':'지나간 밤'))),lines:lines};
   }
   function fin(){
     ui.hold=null;ui.busy=false;ui.recap=rc;

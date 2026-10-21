@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /* 밸런스·외교 점검용 헤드리스 시뮬레이터 (브라우저 없이 규칙만 돌린다)
-   사용: node scripts/sim.js [판수=40] [봇=aggr|peace|idle] */
+   사용: node scripts/sim.js [판수=40] [봇=aggr|peace|idle|auto] */
 var fs=require('fs'),path=require('path'),vm=require('vm');
 var root=path.join(__dirname,'..');
 var ctx={console:console,Math:Math,JSON:JSON,Object:Object,Array:Array,Date:Date};
 ctx.window=ctx;ctx.document={getElementById:function(){return null;}};
 vm.createContext(ctx);
-['01-core.js','01a-diplomacy.js','02-map-gen.js'].forEach(function(f){
+['01-core.js','01a-diplomacy.js','01b-auto.js','02-map-gen.js'].forEach(function(f){
   vm.runInContext(fs.readFileSync(path.join(root,'js',f),'utf8'),ctx,{filename:f});
 });
 var N=+process.argv[2]||40,BOT=process.argv[3]||'aggr';
@@ -21,7 +21,8 @@ var R=vm.runInContext('(function(seed,bot){\n'+
 '}\n'+
 'while(!s.over&&guard++<80){\n'+
 '  decide();\n'+
-'  if(bot!=="idle"){\n'+
+'  if(bot==="auto"){autoNight(s);}\n'+
+'  else if(bot!=="idle"){\n'+
 '    for(var k=0;k<AP_MAX&&!s.over&&!s.pend;k++){\n'+
 '      var done=false;\n'+
 '      if(bot==="peace"){\n'+
@@ -51,14 +52,14 @@ var R=vm.runInContext('(function(seed,bot){\n'+
 '  });\n'+
 '}\n'+
 'var live=[1,2,3].filter(function(r){return!s.dead[r];}).length;\n'+
-'return{over:s.over&&s.over.type,cause:s.over&&s.over.cause,day:s.day,land:owned(s,0).length,pacts:s.pacts.length,st:{made:s.stats.pactsMade,allies:s.stats.alliesFormed,broken:s.stats.pactBroken,betrayedBy:s.stats.betrayedBy},ev:ev,live:live,money:s.money,heat:Math.round(s.heat),dread:Math.round(s.dread),sample:s.news.slice(-3).map(function(n){return n.day+":"+n.text;})};\n'+
+'return{over:s.over&&s.over.type,cause:s.over&&s.over.cause,day:s.day,land:owned(s,0).length,pacts:s.pacts.length,st:{made:s.stats.pactsMade,allies:s.stats.alliesFormed,broken:s.stats.pactBroken,betrayedBy:s.stats.betrayedBy},ev:ev,live:live,grade:gradeOf(scoreOf(s)),money:s.money,heat:Math.round(s.heat),dread:Math.round(s.dread),sample:s.news.slice(-3).map(function(n){return n.day+":"+n.text;})};\n'+
 '})',ctx);
-var tot={},res={};
+var tot={},res={},gr={};
 for(var i=0;i<N;i++){
   var r=R(1000+i*37,BOT);
-  var k=r.over+(r.cause?'/'+r.cause:'');res[k]=(res[k]||0)+1;
-  Object.keys(r.ev).forEach(function(e){tot[e]=(tot[e]||0)+r.ev[e];});Object.keys(r.st).forEach(function(e){tot['st.'+e]=(tot['st.'+e]||0)+r.st[e];});
+  var k=r.over+(r.cause?'/'+r.cause:'');res[k]=(res[k]||0)+1;gr[r.grade]=(gr[r.grade]||0)+1;
+  Object.keys(r.ev).forEach(function(e){tot[e]=(tot[e]||0)+r.ev[e];});tot.land=(tot.land||0)+r.land;tot.money=(tot.money||0)+r.money;Object.keys(r.st).forEach(function(e){tot['st.'+e]=(tot['st.'+e]||0)+r.st[e];});
   if(i<2)console.log(JSON.stringify(r,null,1));
 }
-console.log('결과',res);
+console.log('결과',res,'등급',gr);
 console.log('판당 평균',Object.keys(tot).map(function(e){return e+':'+(tot[e]/N).toFixed(2);}).join('  '));

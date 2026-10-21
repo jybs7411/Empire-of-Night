@@ -91,6 +91,7 @@ function renderChips(){
   }
   h+='</button>';
   $('chips').innerHTML=h;
+  tweenMoney(document.querySelector('#chips .money b'));
 }
 function renderTick(){renderChips();}
 
@@ -107,10 +108,12 @@ function advice(s){
   if(s.dread<28)return{k:'warn',t:'위세가 낮아 이웃이 얕봅니다. 땅을 차지하거나 연회로 위세를 올리세요.',g:'dread'};
   if(s.heat>=55)return{k:'warn',t:'경계가 높습니다. 이웃들이 손잡기 시작합니다. 한 곳과 휴전을 맺어 보세요.',g:'heat'};
   if(s.money<8)return{k:'warn',t:'자금이 바닥입니다. 금빛 점을 거두고 땅을 넓혀 수입을 늘리세요.'};
+  if(ui.auto)return{k:'info',t:'알아서 진행 중입니다. 이벤트가 오면 멈춰요. 직접 두려면 "멈춤"을 누르세요.'};
   if(s.ap===0)return{k:'info',t:'오늘의 수를 다 썼습니다. 밤을 넘기세요.'};
   var buy=TECH.some(function(t){return!hasTech(s,t.id)&&(!t.pre||hasTech(s,t.pre))&&s.money>=t.cost;});
   if(buy&&s.money>=40)return{k:'info',t:'자금에 여유가 있습니다. 작전실에서 조직을 강화해 보세요.',tab:'ops'};
   if(s.day>=3&&!s.pacts.length&&[1,2,3].some(function(r){return!s.dead[r];}))return{k:'info',t:'외교로 이웃 하나와 휴전해 보세요. 위협이 하나 줄어듭니다.',tab:'dip'};
+  if(s.day<=2)return{k:'info',t:'막막하면 "알아서"를 눌러 보세요. 참모가 대신 땅을 넓힙니다.'};
   return{k:'info',t:'내 땅을 눌러 병력을 고른 뒤, 붙은 땅을 눌러 보내세요.'};
 }
 function renderAdvisor(){

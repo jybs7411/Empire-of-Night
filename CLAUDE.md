@@ -1,13 +1,13 @@
 # 밤의 균형 (Night Balance)
 
-현대 야쿠자 배경의 텍스트·지도 전략 게임. 위세(두려움)·경계(적의 결집)·동요(내부 불안) 세 게이지의 줄다리기를 땅따먹기와 외교로 표현한다.
+현대 야쿠자 배경의 텍스트·지도 전략 게임. **한 판 15밤·약 10분, 손가락 몇 번으로 큰 결과를 보는 캐주얼 방치형 감각**을 목표로 한다(`MAXDAY`). 위세(두려움)·경계(적의 결집)·동요(내부 불안) 세 게이지의 줄다리기를 땅따먹기와 외교로 표현한다.
 원래 claude.ai 아티팩트(단일 HTML)였던 것을 Claude Code에서 작업하기 쉽게 파일로 분리한 프로젝트다.
 
 ## 실행
 
 ```bash
 ./scripts/serve.sh          # http://localhost:8000 에서 실행 (python3 필요)
-node scripts/sim.js 60 aggr # 규칙만 헤드리스로 돌려 밸런스·외교 점검 (봇: aggr | peace | idle)
+node scripts/sim.js 60 auto # 규칙만 헤드리스로 돌려 밸런스·외교 점검 (봇: aggr | peace | idle | auto)
 ```
 
 빌드 과정 없음. `index.html`을 브라우저로 직접 열어도 동작한다 (글꼴만 Google Fonts에서 받아온다).
@@ -23,6 +23,7 @@ node scripts/sim.js 60 aggr # 규칙만 헤드리스로 돌려 밸런스·외교
 |---|---|
 | `01-core.js` | 상수, 규칙, 데이터, 지형, 글 도우미, 밤의 목표·예보·대사·칭호, 플레이어 행동, 이웃 조직 AI(공격·확장), 강화 나무(`TECH`), 밤 처리(`endNight`) |
 | `01a-diplomacy.js` | **외교**: 호감(`rel`)·휴전/동맹(`pacts`)·배신·화해·이간, 이웃의 제안(`offers`), 우리 쪽 외교 행동 |
+| `01b-auto.js` | **알아서**(참모 자동 지휘 `autoPlan`/`autoNight`), 이벤트 추천(`recommendChoice`/`recommendRule`), 도장(`checkMiles`), 등급(`scoreOf`/`gradeOf`), 부재 수입(`idleReward`). DOM을 안 건드려 sim.js에서도 돈다 |
 | `02-map-gen.js` | 판마다 무작위 지도 생성 (구역 폴리곤·강·다리·도시·본거지) |
 | `03-ui-setup.js` | 저장(localStorage)·설정·소리·진동, `ui` 상태 |
 | `04-hud.js` | 상단 바, 오른쪽 세로 게이지, 지도 위 칩, **게이지 풀이(`GAUGE`)**, **참모 조언(`advice`)** |
@@ -34,6 +35,7 @@ node scripts/sim.js 60 aggr # 규칙만 헤드리스로 돌려 밸런스·외교
 | `10-events.js` | 이벤트·외교 제안 팝업, 처음 안내, 밤 요약, 엔딩 |
 | `11-actions.js` | 행동 처리 |
 | `12-input.js` | 입력 처리 |
+| `12a-auto-ui.js` | 알아서 자동 진행 루프(`setAuto`/`autoTick`), 토스트(`toast`·`NOTES` 비우기), 자금 카운트업, 이벤트 자동 결정, 앱 복귀 시 부재 수입 |
 | `13-boot.js` | 시작 (저장 불러오기 → `boot()`) — **항상 마지막** |
 
 새 파일을 추가하면 `index.html`의 `<script>` 목록에 순서에 맞게 넣을 것.
@@ -70,12 +72,14 @@ node scripts/sim.js 60 aggr # 규칙만 헤드리스로 돌려 밸런스·외교
 - **돈줄**: 시장·술집·유흥가·파친코·항구가 조직의 주 수입원이다(도시 동그라미 안 그림으로 구분). 요새 같은 건 두지 않는다. 역전(철도)·다리목은 이동용.
 - **세로 모바일 한 화면**에 스크롤 없이 담긴다. 정보·이벤트는 팝업, 시트, 작전실로 분산한다. 지도는 판마다 무작위 + 전략적 지형지물.
 - 땅이 많을수록 병력이 자동으로 늘고 모집도 늘어난다.
+- **방치형 장치**: 하단 초록 "알아서" 버튼(참모가 수·모집·휴전·강화를 대신, 이벤트에서 멈춤, 화면을 직접 만지면 해제), 이벤트의 "참모 추천" 태그와 "참모에게 맡긴다", 전리품·대승·도장 보상, 금고지기(놓친 잔돈 절반 자동 수거), 앱을 닫았다 오면 쌓이는 부재 수입, 밤 요약 자동 닫힘, 엔딩 등급(S~D)과 최고 기록(`nb-best-v1`).
+- 규칙 쪽에서 화면 알림을 띄우려면 `note(text, cls)`를 쓴다(`NOTES` 큐 → `drainNotes`). 터치 목표는 52px 이상으로 둔다.
 - 어려운 개념은 화면에서 바로 풀어 준다: 게이지를 누르면 풀이 시트, 지도 아래 "참모" 한 줄 조언, 처음 실행 때 안내 카드.
 - 3단계까지 반영됨 + 외교/UI 개편. **4단계(연출 강화·사운드·엔딩 분기)는 아직 미완성** — 다음 작업 후보.
 
 ## 저장 데이터
 
-- `localStorage` 키: `nb-save-v3`(진행 중인 판), `nb-set-v2`(설정), `nb-seen-v3`(처음 안내를 봤는지). 저장 구조를 바꾸면 키 버전을 올려 옛 저장과 충돌을 막는다.
+- `localStorage` 키: `nb-save-v4`(진행 중인 판), `nb-set-v2`(설정), `nb-seen-v4`(처음 안내를 봤는지), `nb-best-v1`(최고 등급·점수). 저장 구조를 바꾸면 키 버전을 올려 옛 저장과 충돌을 막는다.
 - `window.claude.hot` 참조는 아티팩트 환경용 훅이다. 없으면 무시되도록 이미 방어되어 있으니 그대로 둔다.
 
 ## 아티팩트로 다시 올리기
@@ -92,6 +96,7 @@ python3 scripts/build_artifact.py     # dist/artifact.html 생성 (CSS·JS를 �
 ## 작업 시 주의
 
 - 수정 후에는 `node --check js/파일.js`로 구문 확인, `node scripts/sim.js`로 규칙이 깨지지 않았는지 확인, 그리고 실제 브라우저(모바일 뷰)에서 한 판 돌려 볼 것.
+- 판 길이(`MAXDAY`)를 바꾸면 `RULE_DAYS`·`SCENE_DAYS`·`DILEMMAS.minDay`·도장(`MILES`)·엔딩 기준을 같이 본다. 난이도는 `GRACE_NIGHTS`·`RAID_MUL`(이웃 압박)로 조절하고, `node scripts/sim.js 100 auto`로 생존율·등급 분포를 확인한다(현재: auto 봇 생존 100%·등급 A/B 중심, aggr 봇 S 중심, idle 봇은 C/B).
 - 전투·병력·위세/경계 수치를 바꿀 때는 `01-core.js`의 상수와 규칙부터 확인한다 (밸런스가 얽혀 있음). 외교 확률은 `01a-diplomacy.js`의 `proposalChance`·`betrayRisk`·`relDrift`.
 - 지도 도시 종류는 `01-core.js`의 `CITY_TYPES`, 배치는 `02-map-gen.js`의 `place(...)`, 그림은 `05-map-render.js`의 `CITY_GLYPH`.
 - 한 파일이 커지면(특히 `01-core.js`) 주제별로 나눠도 되지만, 로드 순서와 전역 의존을 깨지 않게 주의.
