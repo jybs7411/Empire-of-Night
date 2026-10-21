@@ -141,7 +141,7 @@ function stopAnim(){
 }
 function playBattles(list,opts,done){
   finishAnim(true);
-  var q=list.slice(0,opts&&opts.max||4),sp=((opts&&opts.fast)?0.72:1)*((set.fast||ui.auto)?0.6:1);
+  var q=list.slice(0,opts&&opts.max||4),sp=((opts&&opts.fast)?0.72:1)*((set.speed>1)?0.6:1);
   anim.done=done;
   var idx=0;
   function next(){

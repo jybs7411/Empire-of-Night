@@ -6,6 +6,10 @@ function migrate(g){
   if(g.goalsDone===undefined)g.goalsDone=0;
   if(!g.goal)newGoal(g);
   if(!g.mile)g.mile=[];
+  if(!g.sp)g.sp={};
+  if(g.fcs===undefined)g.fcs=-1;
+  if(!g.tickN)g.tickN=0;
+  if(!g.stats.spread)g.stats.spread=0;
   return g;
 }
 function boot(data,again){
@@ -21,7 +25,7 @@ function boot(data,again){
     var ms=(again&&G&&G.mseed!==undefined)?G.mseed:undefined;
     G=newGame((Math.random()*4294967296)>>>0,ms,(again&&G&&G.mw)?G.mw:undefined);
   }
-  ui.auto=false;ui.mShown=null;ui.recKey='';
+  ui.flow=true;ui.acc=0;ui.mShown=null;ui.recKey='';
   if(ok){var ig=idleReward(G,away);if(ig>0)note('자리를 비운 사이 금고에 +¥'+ig,'gold');}
   ui.sel=-1;ui.mode='move';ui.msg='';ui.err=false;ui.flash={};ui.focus=null;ui.sheet=null;ui.recap=null;ui.pops=[];ui.shot=null;ui.confirmNew=false;ui.ops='over';ui.tsel=null;ui.confirmBreak=-1;ui.intro=!lsGet(SEEN_KEY)&&!ok;
   undoStack=[];

@@ -30,6 +30,13 @@ var CITY_GLYPH={
   bridge:'<path d="M3 17h18M4.5 17a7.5 7.5 0 0 1 15 0M3 10.5h18"/>'
 };
 var MONEY_TYPES={club:1,mkt:1,bar:1,pachi:1,port:1};
+/* 빈 땅 위에 영향력이 차오르는 막대 (붙은 내 땅이 있을 때만) */
+function spreadBar(cx,cy,id){
+  if(G.over||ui.hold||spreadPower(G,id)<=0)return'';
+  var pct=Math.max(0.04,Math.min(1,(G.sp[id]||0)/spreadNeed(G,id))),w=26;
+  return'<rect class="spb" x="'+(cx-w/2).toFixed(1)+'" y="'+cy.toFixed(1)+'" width="'+w+'" height="3.6" rx="1.8"/>'+
+    '<rect class="spf'+(G.fcs===id?' fc':'')+'" x="'+(cx-w/2).toFixed(1)+'" y="'+cy.toFixed(1)+'" width="'+(w*pct).toFixed(1)+'" height="3.6" rx="1.8"/>';
+}
 function pactLines(){
   var h='';
   G.pacts.forEach(function(p){
@@ -77,12 +84,14 @@ function renderMap(){
       else if(m.ter==='forest')tex+='<path class="tx'+dim+'" fill="url(#pFor)" d="'+m.d+'"/>';
       if(isSel)fx+='<path class="fx-sel" d="'+m.d+'"/><path class="fx-ant" d="'+m.d+'"/>';
       else if(tg)fx+='<path class="fx-tgt '+tg.c+'" d="'+m.d+'"/>';
+      if(G.fcs===t.id&&!ui.hold)fx+='<path class="fx-ant fc" d="'+m.d+'"/>';
       var lx=m.lx,ly=m.ly+8;
       labs+='<g class="lab '+cls+dim+'">'+hint.replace('HX',lx.toFixed(1)).replace('HY',(ly-12).toFixed(1))+
         '<text class="sm" x="'+(lx-4).toFixed(1)+'" y="'+ly.toFixed(1)+'">¥'+tileInc(G,t)+'</text>'+markG(ow,lx+14,ly-3.5,0.95,'mkl')+
-        dotsSvg(lx,ly+10,mn,ow<0)+'</g>';
+        dotsSvg(lx,ly+10,mn,ow<0)+(ow<0?spreadBar(lx,ly+(mn>7?25:18),t.id):'')+'</g>';
     }else{
       var px=m.px,py=m.py,pxs=px.toFixed(1),pys=py.toFixed(1);
+      if(G.fcs===t.id&&!ui.hold)cityFx+='<circle class="selring fc" cx="'+pxs+'" cy="'+pys+'" r="16.5"/>';
       if(isSel)cityFx+='<circle class="halo" cx="'+pxs+'" cy="'+pys+'" r="13"/><circle class="selring" cx="'+pxs+'" cy="'+pys+'" r="16.5"/>';
       else if(tg)cityFx+='<circle class="tgtring '+tg.c+'" cx="'+pxs+'" cy="'+pys+'" r="16.5"/>';
       var deck='';
@@ -91,7 +100,7 @@ function renderMap(){
       labs+='<g class="lab '+cls+dim+(MONEY_TYPES[t.type]?' money':'')+'">'+deck+(t.hq?'<circle class="ring" cx="'+pxs+'" cy="'+pys+'" r="13"/>':'')+
         '<circle class="city '+cls+'" cx="'+pxs+'" cy="'+pys+'" r="'+(t.hq?10.5:9.5)+'"/>'+gl+
         hint.replace('HX',pxs).replace('HY',(py-17).toFixed(1))+
-        markG(ow,px-13,py-10,0.8,'mkl')+dotsSvg(px,py+(t.hq?21:18),mn,ow<0)+'</g>';
+        markG(ow,px-13,py-10,0.8,'mkl')+dotsSvg(px,py+(t.hq?21:18),mn,ow<0)+(ow<0?spreadBar(px,py+(mn>7?35:27),t.id):'')+'</g>';
       hits+='<circle class="hit '+cls+'" data-i="'+t.id+'" cx="'+pxs+'" cy="'+pys+'" r="17" tabindex="0" role="button" aria-label="'+aria+'"/>';
     }
   });

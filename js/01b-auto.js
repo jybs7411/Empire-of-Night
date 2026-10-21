@@ -13,7 +13,7 @@ function checkMiles(s){
   });
 }
 
-/* ---------- 알아서: 참모가 이번 수를 정해 준다 ----------
+/* ---------- (테스트용) 자동 플레이 봇: sim.js의 auto 봇이 쓴다. 화면에서는 쓰지 않는다 ----------
    autoPlan(s)는 상태를 바꾸지 않고 "다음 한 수"만 돌려준다. {free:true}면 수를 쓰지 않는 일(강화). */
 var TECH_ORDER=['a1','c1','a2','b4','c4','a4','a3','b1','c2','a5','c3','b5','a6','b6','b2','c6','c5','b3'];
 function techById(id){return TECH.filter(function(t){return t.id===id;})[0];}
@@ -151,7 +151,7 @@ function scoreOf(s){
   else sc-=6;
   return Math.max(0,Math.round(sc));
 }
-function gradeOf(sc){return sc>=100?'S':(sc>=80?'A':(sc>=60?'B':(sc>=40?'C':'D')));}
+function gradeOf(sc){return sc>=108?'S':(sc>=90?'A':(sc>=70?'B':(sc>=48?'C':'D')));}
 
 /* ---------- 부재 수입: 자리를 비운 동안 금고에 쌓인 돈 ---------- */
 var IDLE_MIN_MS=45000,IDLE_CAP_MIN=20;

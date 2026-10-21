@@ -6,7 +6,7 @@ var root=path.join(__dirname,'..');
 var ctx={console:console,Math:Math,JSON:JSON,Object:Object,Array:Array,Date:Date};
 ctx.window=ctx;ctx.document={getElementById:function(){return null;}};
 vm.createContext(ctx);
-['01-core.js','01a-diplomacy.js','01b-auto.js','02-map-gen.js'].forEach(function(f){
+['01-core.js','01a-diplomacy.js','01b-auto.js','01c-spread.js','02-map-gen.js'].forEach(function(f){
   vm.runInContext(fs.readFileSync(path.join(root,'js',f),'utf8'),ctx,{filename:f});
 });
 var N=+process.argv[2]||40,BOT=process.argv[3]||'aggr';

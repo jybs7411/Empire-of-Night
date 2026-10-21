@@ -91,7 +91,8 @@ function endTonight(){
     var rank=function(e){return e.tone==='bad'?0:(e.tone==='big'?1:(e.tone==='good'?2:3));};
     lines=lines.map(function(e,i){return{e:e,i:i};}).sort(function(a,b){return rank(a.e)-rank(b.e)||a.i-b.i;}).slice(0,6).sort(function(a,b){return a.i-b.i;}).map(function(x){return x.e;});
     var bet=lines.some(function(e){return/배신!|돌아섰다/.test(e.text);}),ally=lines.some(function(e){return/동맹을 맺었다|손을 잡았다|휴전했다/.test(e.text);});
-    rc={day:G.day-1,gain:G.money-moneyBefore,land:owned(G,0).length,men:owned(G,0).reduce(function(a,t){return a+t.men;},0),title:bet?'배신의 밤':(lost>0?'빼앗긴 밤':(ally?'손잡는 밤':(G.heat>=55?'숨 막히는 밤':'지나간 밤'))),lines:lines};
+    var big=bet||ally||lost>0||G.heat>=55||lines.some(function(e){return e.tone==='bad'||e.tone==='big';});
+    rc=!big?null:{day:G.day-1,gain:G.money-moneyBefore,land:owned(G,0).length,men:owned(G,0).reduce(function(a,t){return a+t.men;},0),title:bet?'배신의 밤':(lost>0?'빼앗긴 밤':(ally?'손잡는 밤':(G.heat>=55?'숨 막히는 밤':'지나간 밤'))),lines:lines};
   }
   function fin(){
     ui.hold=null;ui.busy=false;ui.recap=rc;

@@ -1,5 +1,6 @@
-/* ========== 알아서(자동 진행) · 알림 · 숫자 연출 · 부재 수입 ========== */
-var autoT=0,mnT=0,hiddenAt=0;
+/* ========== 시간 흐름(영향력 확산) · 알림 · 숫자 연출 · 부재 수입 ==========
+   밤이 저절로 흘러가며 영향력이 번진다. 한 밤 = STEP_MS × SPREAD_TICKS (속도 ×1 기준 28초). */
+var mnT=0,hiddenAt=0,flowLast=0,STEP_MS=7000;
 
 /* ---- 알림(토스트) ---- */
 function toast(t,c){
@@ -33,50 +34,39 @@ function tweenMoney(el){
   mnT=requestAnimationFrame(f);
 }
 
-/* ---- 이벤트를 참모 추천대로 ---- */
-function decideAuto(){
-  var p=G.pend;if(!p)return;
-  var res=(p.type==='rule')?actRule(G,recommendRule(G,p.opts)):actScene(G,recommendChoice(G,p));
-  if(res&&res.ok){undoStack=[];toast('참모가 정했다','auto');}
-  if(res)afterAct(res,'tap');
+/* ---- 시간 흐름 ---- */
+function flowRunning(){
+  return ui.flow&&!document.hidden&&!ui.busy&&!ui.recap&&!ui.intro&&!ui.sheet&&!G.pend&&!G.over&&ui.mode!=='example';
 }
-
-/* ---- 알아서: 수를 두고 → 밤을 넘기고 → 반복. 이벤트·시트가 열리면 기다린다 ---- */
-function setAuto(on,quiet){
-  on=!!on;
-  if(ui.auto===on)return;
-  ui.auto=on;clearTimeout(autoT);
-  if(on){
-    ui.sel=-1;ui.mode='move';ui.peek=-1;setHint('',false);
-    sfx('sel');buzz(12);
-    if(!quiet)toast('알아서 시작 · 이벤트에서는 멈춘다','auto');
-    autoT=setTimeout(autoTick,300);
-  }else if(!quiet){toast('직접 두기','dim');}
-  render();
+function updateBar(){
+  var i=$('tbarI');if(!i)return;
+  i.style.width=Math.min(100,(((G.tickN||0)*STEP_MS+ui.acc)/(STEP_MS*SPREAD_TICKS))*100).toFixed(1)+'%';
 }
-function autoWait(ms){autoT=setTimeout(autoTick,ms);}
-function autoTick(){
-  clearTimeout(autoT);
-  if(!ui.auto)return;
-  if(G.over){ui.auto=false;render();return;}
-  if(document.hidden||ui.busy||ui.recap||ui.intro||ui.sheet){autoWait(450);return;}
-  if(G.pend){
-    if(set.autoEv){decideAuto();autoWait(900);}else autoWait(450);
-    return;
+function flowStep(){
+  if((G.tickN||0)<SPREAD_TICKS-1){
+    var got=spreadStep(G,1/SPREAD_TICKS);G.tickN=(G.tickN||0)+1;
+    got.forEach(function(id){ui.flash[id]='won';ui.pops.push({id:id,t:'번짐',c:'win'});});
+    if(got.length){sfx('win');buzz(15);flashClear();fxClear();}
+    render();
+  }else endTonight();
+}
+function flowTick(){
+  var now=performance.now(),dt=Math.min(300,now-flowLast);flowLast=now;
+  if(G&&flowRunning()){
+    ui.acc+=dt*(set.speed||1);
+    if(ui.acc>=STEP_MS){ui.acc=0;flowStep();}
   }
-  var gap=set.fast?240:430,p=autoPlan(G);
-  if(p&&(p.free||G.ap>0)){
-    var res=act(function(){return p.run(G);},p.kind==='move'?undefined:'coin');
-    if(!res.ok){endTonight();autoWait(700);return;}
-    autoWait(gap);
-  }else{
-    endTonight();autoWait(set.fast?500:800);
-  }
+  updateBar();
 }
-/* 직접 손을 대면 자동은 멈춘다 */
-['map','dock','amt','bEnd','bUndo'].forEach(function(id){
-  $(id).addEventListener('click',function(){if(ui.auto)setAuto(false,true);},true);
-});
+flowLast=performance.now();
+setInterval(flowTick,100);
+/* 속도 버튼: ×1 → ×2 → ×3 → 정지 → ×1 */
+function cycleFlow(){
+  if(!ui.flow){ui.flow=true;set.speed=1;}
+  else if((set.speed||1)<3)set.speed=(set.speed||1)+1;
+  else ui.flow=false;
+  saveSet();sfx('tap');render();
+}
 
 /* ---- 부재 수입: 앱을 닫았다 돌아오면 금고에 돈이 쌓여 있다 ---- */
 function claimIdle(awayMs){
@@ -87,5 +77,4 @@ document.addEventListener('visibilitychange',function(){
   if(document.hidden){hiddenAt=Date.now();if(G)saveGame();return;}
   if(G&&!G.over&&hiddenAt){claimIdle(Date.now()-hiddenAt);}
   hiddenAt=0;
-  if(ui.auto){clearTimeout(autoT);autoWait(500);}
 });

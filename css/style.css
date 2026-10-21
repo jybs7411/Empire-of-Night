@@ -515,7 +515,6 @@ em.chip.fear,em.chip.ally,em.chip.calm{color:var(--good);border-color:rgba(143,1
 .autob b{font-weight:700;font-size:14.5px;letter-spacing:.02em;white-space:nowrap}
 .autob:active:not(:disabled){transform:translateY(1px);box-shadow:none}
 .autob:disabled{opacity:.38}
-.autob[aria-pressed="true"]{background:linear-gradient(#4a1a1c,#2a1012);border-color:var(--danger);color:#ffd9d4;animation:autoPulse 1.4s ease-in-out infinite}
 @keyframes autoPulse{50%{box-shadow:var(--hl),0 0 0 4px rgba(226,90,78,.28)}}
 
 /* 알림(토스트): 수입 · 전리품 · 도장 · 연승 */
@@ -569,3 +568,16 @@ em.chip.fear,em.chip.ally,em.chip.calm{color:var(--good);border-color:rgba(143,1
 .recap .rgain b{font:900 34px var(--mono);color:var(--gold)}
 .recap .rgain b.neg{color:var(--danger)}
 .recap .rgain span{font-size:13px;color:var(--ink2)}
+
+/* 시간 흐름 · 영향력 확산 */
+.datebox{position:relative}
+.tbar{position:absolute;left:6px;right:6px;bottom:3px;height:3px;border-radius:2px;background:rgba(201,161,74,.18);overflow:hidden}
+.tbar i{display:block;height:100%;width:0;background:var(--gold)}
+.autob[data-run="1"]{background:linear-gradient(#2c4a3c,#16271f);border-color:#6fae8c;color:#d8efe2;animation:none}
+.autob[data-run="0"]{background:linear-gradient(#4a1a1c,#2a1012);border-color:var(--danger);color:#ffd9d4;animation:autoPulse 1.4s ease-in-out infinite}
+.spb{fill:rgba(0,0,0,.55);stroke:rgba(201,161,74,.35);stroke-width:.5;pointer-events:none}
+.spf{fill:var(--gold);pointer-events:none}
+.spf.fc{fill:#ffd36b}
+.fx-ant.fc{stroke:#ffd36b}
+.selring.fc{stroke:#ffd36b;stroke-dasharray:4 3}
+#bFocus[aria-pressed="true"]{border-color:#ffd36b;background:linear-gradient(#4a3a14,#2a210b)}

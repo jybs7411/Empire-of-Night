@@ -1,7 +1,7 @@
 /* ========== 모바일 화면 · 설정 · 소리 ========== */
 var $=function(id){return document.getElementById(id);};
-var G=null,SAVE_KEY='nb-save-v4',SET_KEY='nb-set-v2',SEEN_KEY='nb-seen-v4',BEST_KEY='nb-best-v1';
-var set={sound:true,haptic:true,diff:0,anim:true,fast:false,autoEv:false};
+var G=null,SAVE_KEY='nb-save-v5',SET_KEY='nb-set-v2',SEEN_KEY='nb-seen-v4',BEST_KEY='nb-best-v1';
+var set={sound:true,haptic:true,diff:0,anim:true,speed:1};
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
@@ -34,10 +34,10 @@ var SFX={
 function sfx(n){try{if(SFX[n])SFX[n]();}catch(e){}}
 function buzz(p){if(!set.haptic)return;try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 
-var ui={busy:false,hold:null,peek:-1,sel:-1,mode:'move',amt:'all',msg:'',err:false,flash:{},sheet:null,more:'rules',page:0,pops:[],shot:null,recap:null,confirmNew:false,focus:null,ops:'over',tsel:null,gauge:'dread',confirmBreak:-1,intro:false,auto:false,mShown:null,rec:0,recKey:'',recorded:-1};
+var ui={busy:false,hold:null,peek:-1,sel:-1,mode:'move',amt:'all',msg:'',err:false,flash:{},sheet:null,more:'rules',page:0,pops:[],shot:null,recap:null,confirmNew:false,focus:null,ops:'over',tsel:null,gauge:'dread',confirmBreak:-1,intro:false,flow:true,acc:0,mShown:null,rec:0,recKey:'',recorded:-1};
 var prevV={dread:null,heat:null,anx:null};
 var undoStack=[];
-var TIPS=['막막하면 오른쪽 아래 초록 "알아서"를 누르세요. 참모가 판을 대신 굴리고, 이벤트가 오면 멈춥니다.','시장·술집·유흥가·파친코는 돈줄입니다. 이웃 땅을 빼앗으면 전리품도 챙겨요.','땅 5·8·11곳을 넓히면 도장 보상이 나옵니다. 외교 탭에서 휴전도 맺어 보세요.'];
+var TIPS=['시간이 흐르면 영향력이 붙은 빈 땅으로 저절로 번집니다. 빈 땅을 눌러 "집중"하면 3배 빨라요.','오른쪽 아래 ×1을 누르면 시간이 빨라지고, 한 번 더 누르면 정지합니다. 시장·술집·파친코는 돈줄입니다.','이웃 땅은 번지지 않으니 병력으로 치세요. 땅 5·8·11곳이면 도장 보상, 외교 탭에서 휴전도 맺어 보세요.'];
 /* 조직 표식: 0 불꽃 · 1 마름모 · 2 초승달 · 3 송곳니 */
 var MARKS=[
   {n:'불꽃',d:'M0 -8C2 -4 5.5 -2 5.5 2.2A5.5 5.5 0 0 1 -5.5 2.2C-5.5 -0.2 -4 -1.8 -2.6 -3.6C-2.4 -1.6 -1.2 -1.6 -0.6 -3.2C-0.2 -4.6 -0.4 -6.4 0 -8ZM0 7.4C-1.7 7.4 -2.8 6.2 -2.8 4.6C-2.8 3 -1.4 2 0 0.6C1.4 2 2.8 3 2.8 4.6C2.8 6.2 1.7 7.4 0 7.4Z'},

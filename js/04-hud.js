@@ -17,14 +17,14 @@ function renderTop(){
     '<div class="mainbar" role="img" aria-label="장악 '+pct+'%"><span class="mfill" style="width:'+pct+'%"></span><span class="mlabel">장악 '+pct+'%</span></div>'+
     '<div class="pill r" title="이웃 병력">'+'<b>'+enemyMen()+'</b>'+peopleSvg('foe')+'</div>';
   var dots='';for(var i=0;i<AP_MAX;i++)dots+='<i class="'+(i<G.ap?'on':'')+'"></i>';
-  $('dateBox').innerHTML='<span class="dl"><span>밤</span><b>'+Math.min(G.day,MAXDAY)+'</b><i>/'+MAXDAY+'</i></span><span class="ap-dots" aria-label="남은 수 '+G.ap+'">'+dots+'</span>';
+  $('dateBox').innerHTML='<span class="dl"><span>밤</span><b>'+Math.min(G.day,MAXDAY)+'</b><i>/'+MAXDAY+'</i></span><span class="ap-dots" aria-label="남은 수 '+G.ap+'">'+dots+'</span><span class="tbar" aria-hidden="true"><i id="tbarI"></i></span>';updateBar();
 }
 
 /* ---- 게이지 풀이 ---- */
 var GAUGE={
   dread:{n:'위세',tag:'이웃이 우리를 얼마나 두려워하나',
     what:'이웃 조직이 우리를 무서워하는 정도입니다. 높을수록 이웃이 함부로 덤비지 못하고, 휴전·동맹 제의도 잘 받아 줍니다. 낮으면 얕보고 땅을 갉아먹으러 옵니다.',
-    up:['땅을 차지한다 (연승이면 더 오른다)','본보기 · 연회','목표를 이룬다'],
+    up:['땅을 차지한다 (영향력이 번져도 조금 오른다)','본보기 · 이웃 땅 점령','목표를 이룬다'],
     down:['땅을 잃거나 공격이 막힌다','밤이 지나면 저절로 조금씩 식는다','동요가 높으면 더 샌다'],
     zones:function(){return[['bad','28 미만','얕보인다. 이웃이 땅을 노린다.'],['','28~55','안정권. 밤마다 조금씩 식는다.'],['warn','55 이상','두려움은 크지만 경계도 함께 오른다.']];}},
   heat:{n:'경계',tag:'이웃이 우리를 얼마나 위협으로 보나',
@@ -34,7 +34,7 @@ var GAUGE={
     zones:function(){var sa=strikeAt(G);return[['','55 미만','각자 제 몫만 챙긴다. 이웃끼리 싸우기도 한다.'],['warn','55~'+sa,'이웃들 사이에 동맹 이야기가 돈다.'],['bad',sa+' 이상','동맹한 이웃이 같은 밤에 덤빈다.']];}},
   anx:{n:'동요',tag:'조직 안의 불안 · 센 척의 값',
     what:'우리 조직 안쪽의 흔들림입니다. 높으면 가면이 갈라져 위세가 새고 싸움이 무뎌지며, 100이 되면 조직이 스스로 무너집니다.',
-    up:['땅을 빼앗기거나 본보기·연회를 쓴다','가혹한 선택','경계가 55 이상이면 매밤 오른다'],
+    up:['땅을 빼앗기거나 본보기를 쓴다','가혹한 선택','경계가 55 이상이면 매밤 오른다'],
     down:['숨 죽이기','자비로운 선택 · 부하 챙기기','법·변호사 강화'],
     zones:function(){return[['','40 미만','아직은 태연한 척할 수 있다.'],['warn','40~70','센 척이 점점 무겁다.'],['bad','70 이상','가면이 갈라진다. 위세가 새고 공격이 10% 약해진다.']];}}
 };
@@ -105,15 +105,14 @@ function advice(s){
   var al=alliesOf(s,0);
   for(var i=0;i<al.length;i++)if(betrayRisk(s,al[i],0)>=0.12)return{k:'warn',t:ORGS[al[i]].short+'의 배신 위험이 높습니다. 선물을 보내거나 병력을 모으세요.',tab:'dip'};
   if(s.offers.length)return{k:'info',t:'이웃이 제안을 보내 왔습니다. 다음 밤에 확인하세요.',tab:'dip'};
-  if(s.dread<28)return{k:'warn',t:'위세가 낮아 이웃이 얕봅니다. 땅을 차지하거나 연회로 위세를 올리세요.',g:'dread'};
+  if(s.dread<28)return{k:'warn',t:'위세가 낮아 이웃이 얕봅니다. 땅을 차지하거나 이웃 땅을 쳐서 위세를 올리세요.',g:'dread'};
   if(s.heat>=55)return{k:'warn',t:'경계가 높습니다. 이웃들이 손잡기 시작합니다. 한 곳과 휴전을 맺어 보세요.',g:'heat'};
   if(s.money<8)return{k:'warn',t:'자금이 바닥입니다. 금빛 점을 거두고 땅을 넓혀 수입을 늘리세요.'};
-  if(ui.auto)return{k:'info',t:'알아서 진행 중입니다. 이벤트가 오면 멈춰요. 직접 두려면 "멈춤"을 누르세요.'};
   if(s.ap===0)return{k:'info',t:'오늘의 수를 다 썼습니다. 밤을 넘기세요.'};
   var buy=TECH.some(function(t){return!hasTech(s,t.id)&&(!t.pre||hasTech(s,t.pre))&&s.money>=t.cost;});
   if(buy&&s.money>=40)return{k:'info',t:'자금에 여유가 있습니다. 작전실에서 조직을 강화해 보세요.',tab:'ops'};
   if(s.day>=3&&!s.pacts.length&&[1,2,3].some(function(r){return!s.dead[r];}))return{k:'info',t:'외교로 이웃 하나와 휴전해 보세요. 위협이 하나 줄어듭니다.',tab:'dip'};
-  if(s.day<=2)return{k:'info',t:'막막하면 "알아서"를 눌러 보세요. 참모가 대신 땅을 넓힙니다.'};
+  if(s.day<=3)return{k:'info',t:'영향력은 시간이 지나면 저절로 번집니다. 빈 땅을 눌러 "집중"하면 그쪽으로 빨리 번져요.'};
   return{k:'info',t:'내 땅을 눌러 병력을 고른 뒤, 붙은 땅을 눌러 보내세요.'};
 }
 function renderAdvisor(){

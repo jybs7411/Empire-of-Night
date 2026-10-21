@@ -290,11 +290,11 @@ function newGame(seed,mseed,mw){
   if(mseed===undefined)mseed=seed;
   if(!mw)mw=(typeof mapWidth==='function')?mapWidth():420;
   genMap(mseed,mw);
-  var s={seed:seed,mseed:mseed,mw:MAP_W,rs:seed|0,day:1,ap:AP_MAX,dread:42,heat:14,money:40,mile:[],seenAt:0,
+  var s={seed:seed,mseed:mseed,mw:MAP_W,rs:seed|0,day:1,ap:AP_MAX,dread:42,heat:14,money:40,mile:[],seenAt:0,sp:{},fcs:-1,tickN:0,
     tiles:NODES.map(function(t){return{id:t.id,kind:t.kind,name:t.name,type:t.type,inc:t.inc,exp:t.exp,cap:t.cap,hq:t.hq,owner:t.owner,men:t.men};}),
     tech:[],bubbles:[],done:{},rules:[],pend:null,sceneOrder:[0,1,2,3,4],anx:20,crew:CREW.map(function(c){return{loy:c.loy,alive:true};}),grudge:[0,0,0,0],dead:[false,false,false,false],rel:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],aff:[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],pacts:[],offers:[],news:[],ambush:[],cool:[0,0,0,0],refused:[0,0,0,0],hit:[-9,-9,-9,-9],
     log:[],lastSay:'',over:null,lastBlow:null,lostTonight:0,focus:-1,diff:DIFF,streak:0,bestStreak:0,goal:null,goalsDone:0,
-    stats:{examples:0,peakDread:42,peakHeat:14,peakAnx:20,strikes:0,taken:0,lost:0,betrayed:0,purged:0,mercy:0,harsh:0,bubbles:0,pactsMade:0,alliesFormed:0,pactBroken:0,betrayedBy:0}};
+    stats:{examples:0,peakDread:42,peakHeat:14,peakAnx:20,spread:0,strikes:0,taken:0,lost:0,betrayed:0,purged:0,mercy:0,harsh:0,bubbles:0,pactsMade:0,alliesFormed:0,pactBroken:0,betrayedBy:0}};
   for(var i=s.sceneOrder.length-1;i>0;i--){var j=Math.floor(rnd(s)*(i+1));var t=s.sceneOrder[i];s.sceneOrder[i]=s.sceneOrder[j];s.sceneOrder[j]=t;}
   for(var a=1;a<=3;a++){
     s.rel[a][0]=Math.round((rnd(s)-0.5)*16);
@@ -791,6 +791,7 @@ function endNight(s){
   s.lostTonight=0;s.focus=-1;s.streak=0;
   if(auto>0){s.money+=auto;s.stats.bubbles++;}
   say(s,'밤이 깊었다','sep');
+  spreadRest(s);
   var grown=0;
   var own0=owned(s,0),gn=Math.floor(own0.length/5);
   for(var gk=0;gk<gn;gk++){

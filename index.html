@@ -57,7 +57,7 @@
   <div class="dock" id="dock">
     <button type="button" class="act" id="bRecruit"><b>모집</b><small>병력 +2 · ¥5</small></button>
     <button type="button" class="act danger" id="bExample" aria-pressed="false"><b>본보기</b><small>위세+14 경계+9</small></button>
-    <button type="button" class="act" id="bFeast"><b>연회</b><small>위세+10 · ¥10</small></button>
+    <button type="button" class="act" id="bFocus" aria-pressed="false"><b>집중</b><small>빈 땅을 눌러 고르기</small></button>
     <button type="button" class="act" id="bLie"><b>숨 죽이기</b><small>경계−10 동요−6</small></button>
   </div>
 
@@ -67,7 +67,7 @@
       <button type="button" data-amt="all" aria-pressed="true">전부</button>
       <button type="button" data-amt="half" aria-pressed="false">절반</button>
     </div>
-    <button type="button" class="autob" id="bAuto" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"></svg><b>알아서</b></button>
+    <button type="button" class="autob" id="bFlow" aria-label="시간 흐름"><svg viewBox="0 0 24 24" aria-hidden="true"></svg><b>×1</b></button>
     <button type="button" class="primary" id="bEnd">밤을 넘긴다</button>
   </div>
 
@@ -97,6 +97,7 @@
 <script src="js/01-core.js"></script>
 <script src="js/01a-diplomacy.js"></script>
 <script src="js/01b-auto.js"></script>
+<script src="js/01c-spread.js"></script>
 <script src="js/02-map-gen.js"></script>
 <script src="js/03-ui-setup.js"></script>
 <script src="js/04-hud.js"></script>

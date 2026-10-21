@@ -24,7 +24,11 @@ function renderInfo(){
   if(!m2&&!G.over){
     if(ui.mode==='example')m2='본보기를 보일 이웃 땅을 누르세요.';
     else if(ui.sel>=0)m2=tip+' 보낼 곳을 누르세요.';
-    else if(ui.peek>=0)m2=tip+' 내 땅을 먼저 눌러 병력을 고르세요.';
+    else if(ui.peek>=0){
+      var pt=G.tiles[ui.peek];
+      if(pt.owner===-1&&spreadPower(G,pt.id)>0){var eta=spreadEta(G,pt.id);m2='영향력이 번지는 중 · 약 '+(eta<1?'1밤 안':Math.ceil(eta)+'밤')+'. 집중을 누르면 3배 빨라진다.';}
+      else m2=tip+' 내 땅을 먼저 눌러 병력을 고르세요.';
+    }
     else m2=(G.day<=TIPS.length&&G.ap>0)?TIPS[G.day-1]:'내 땅을 눌러 병력을 고르세요.';
   }
   $('info').innerHTML=h+'<div class="i-msg'+(ui.err?' err':'')+'">'+esc(m2)+'</div>';
@@ -39,17 +43,20 @@ function renderActions(){
   $('bExample').setAttribute('aria-pressed',ui.mode==='example'?'true':'false');
   $('bExample').querySelector('small').textContent='위세+'+(14+(hasTech(G,'b2')?4:0))+' 경계+9';
   $('bExample').title='붙어 있는 이웃 땅에 본보기를 보입니다. 위세 크게 ↑ · 경계 ↑ · 동요 ↑ · 그쪽 원한 ↑ · 수 1';
-  $('bFeast').disabled=!(ap&&G.money>=10);
-  $('bFeast').title='돈으로 사는 두려움. 위세 +10 · 경계 +4 · 동요 +3 · 수 1 · ¥10';
+  var pk0=ui.peek>=0?G.tiles[ui.peek]:null,fOk=!!(pk0&&pk0.owner===-1&&spreadPower(G,pk0.id)>0&&!over);
+  $('bFocus').disabled=!fOk;
+  $('bFocus').setAttribute('aria-pressed',(fOk&&G.fcs===ui.peek)?'true':'false');
+  $('bFocus').querySelector('small').textContent=fOk?((G.fcs===ui.peek)?'누르면 해제':'영향력 ×3'):(G.fcs>=0?'집중 중 · '+G.tiles[G.fcs].name:'빈 땅을 눌러 고르기');
+  $('bFocus').title='선택한 빈 땅으로 영향력이 3배 빨리 번진다. 수는 쓰지 않는다.';
   $('bLie').disabled=!ap;
   $('bLie').title='숨을 죽이고 조용히 지냅니다. 위세 −8 · 경계 −10 · 동요 −6 · 수 1';
-  $('bUndo').disabled=!(undoStack.length&&!over&&!G.pend&&!ui.auto);
-  var au=$('bAuto');
-  au.disabled=over;
-  au.setAttribute('aria-pressed',ui.auto?'true':'false');
-  au.title=ui.auto?'자동 진행을 멈추고 직접 둡니다':'참모가 수를 대신 두고 밤을 넘깁니다. 이벤트가 오면 멈춥니다';
-  au.querySelector('b').textContent=ui.auto?'멈춤':'알아서';
-  au.querySelector('svg').innerHTML=ui.auto?'<rect x="6" y="6" width="12" height="12" rx="1.5"/>':'<path d="M7 4.5v15l12-7.5z"/>';
+  $('bUndo').disabled=!(undoStack.length&&!over&&!G.pend);
+  var fl=$('bFlow'),sp=set.speed||1;
+  fl.disabled=over;
+  fl.setAttribute('data-run',ui.flow?'1':'0');
+  fl.title=ui.flow?'시간이 흐르는 속도. 누르면 바뀝니다':'시간이 멈춰 있습니다. 누르면 다시 흐릅니다';
+  fl.querySelector('b').textContent=ui.flow?'×'+sp:'정지';
+  fl.querySelector('svg').innerHTML=ui.flow?'<path d="M3 5v14l8-7z"/>'+(sp>1?'<path d="M11 5v14l8-7z"/>':'')+(sp>2?'<path d="M17 8v8l5-4z"/>':''):'<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>';
   $('bEnd').disabled=over||!!G.pend;
   $('bEnd').className='primary'+((G.ap===0&&!over&&!G.pend)?' ready':'');
   document.querySelectorAll('#amt button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.amt===ui.amt?'true':'false');});
