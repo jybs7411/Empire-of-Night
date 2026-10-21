@@ -19,7 +19,7 @@ function boot(data,again){
     var ms=(again&&G&&G.mseed!==undefined)?G.mseed:undefined;
     G=newGame((Math.random()*4294967296)>>>0,ms,(again&&G&&G.mw)?G.mw:undefined);
   }
-  ui.sel=-1;ui.mode='move';ui.msg='';ui.err=false;ui.flash={};ui.focus=null;ui.sheet=null;ui.recap=null;ui.pops=[];ui.shot=null;ui.confirmNew=false;
+  ui.sel=-1;ui.mode='move';ui.msg='';ui.err=false;ui.flash={};ui.focus=null;ui.sheet=null;ui.recap=null;ui.pops=[];ui.shot=null;ui.confirmNew=false;ui.ops='over';ui.tsel=null;ui.confirmBreak=-1;ui.intro=!lsGet(SEEN_KEY)&&!ok;
   undoStack=[];
   prevV.dread=null;prevV.heat=null;prevV.anx=null;
   $('modal').dataset.key='';$('modal').hidden=true;$('modal').innerHTML='';$('recap').hidden=true;$('recap').innerHTML='';

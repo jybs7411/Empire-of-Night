@@ -1,8 +1,8 @@
 /* ========== 무작위 지도 ========== */
-var NODES=[],ADJ=[],DIST=[],HQ_ID=-1,MAPSEED=null,COAST=[],COAST_D='',RIVER_D='',RAIL=[];
+var NODES=[],ADJ=[],DIST=[],HQ_ID=-1,MAPSEED=null,COAST=[],COAST_D='',RIVER_D='',RIVER_PTS=[],RAIL=[],HQ_OF=[-1,-1,-1,-1],N_AREAS=0;
 var TERRAIN={
   plain:{n:'평야',df:1,tip:'수입 +1. 길이 트여 있어 차지하기 쉽다.'},
-  forest:{n:'숲',df:1.1,tip:'방어 +10%. 눈에 띄지 않아 차지해도 견제가 오르지 않고, 가진 밤마다 견제 −1(최대 −2).'},
+  forest:{n:'숲',df:1.1,tip:'방어 +10%. 눈에 띄지 않아 차지해도 경계가 오르지 않고, 가진 밤마다 경계 −1(최대 −2).'},
   mtn:{n:'산악',df:1.25,tip:'방어 +25%, 수입 −1. 지키기 좋은 땅이다.'}
 };
 var CITY_TIP={
@@ -255,7 +255,7 @@ function tryMap(R){
   function single(i2){
     var px=cen[i2][0],py=cen[i2][1]+24;
     if(!inPoly(px,py,coast))py=cen[i2][1]+12;
-    return[px,py];
+    return[px,Math.min(py,436)];
   }
   var posList=[];
   hqA.forEach(function(h,q2){
@@ -283,7 +283,7 @@ function tryMap(R){
   var useCnt=[];for(i=0;i<n;i++)useCnt.push(0);
   function farEnough(pos,dmin){
     for(var a=0;a<posList.length;a++)if(Math.hypot(posList[a][0]-pos[0],posList[a][1]-pos[1])<dmin)return false;
-    return pos[0]>34&&pos[0]<W-34&&pos[1]>30&&pos[1]<456&&inPoly(pos[0],pos[1],coast);
+    return pos[0]>34&&pos[0]<W-34&&pos[1]>30&&pos[1]<438&&inPoly(pos[0],pos[1],coast);
   }
   function place(type,cands,cmp){
     var list=shuf(R,cands);
@@ -330,8 +330,8 @@ function tryMap(R){
   cities.forEach(function(c3){if(!c3.name)c3.name=pools[c3.type].shift();});
   /* 이름표 자리: 도시·다른 이름표와 겹치지 않게 */
   function ovl(a,b){var w=Math.min(a[2],b[2])-Math.max(a[0],b[0]),h=Math.min(a[3],b[3])-Math.max(a[1],b[1]);return(w>0&&h>0)?w*h:0;}
-  function lrect(x,y){return[x-42,y-12,x+42,y+30];}
-  var crects=cities.map(function(c3){return[c3.px-38,c3.py-28,c3.px+38,c3.py+(c3.type==='hq'?32:28)];});
+  function lrect(x,y){return[x-42,y-12,x+42,y+36];}
+  var crects=cities.map(function(c3){return[c3.px-38,c3.py-28,c3.px+38,c3.py+42];});
   var lpos=[],lrs=[];
   for(i=0;i<n;i++)if(hasCity[i]){lpos[i]=[cen[i][0],cen[i][1]-32];lrs.push(lrect(lpos[i][0],lpos[i][1]));}
   var dys=[-8,-26,10,-42,26,-58,42],dxs=[0,-24,24];
@@ -360,6 +360,7 @@ function tryMap(R){
     var mn=men[i]>0?men[i]:clamp(Math.round(cap*0.25),1,4);
     nodes.push({id:i,kind:'area',name:names[i],type:'area',ter:ter[i],inc:inc,exp:ter[i]==='forest'?0:1,cap:cap,hq:false,owner:owner[i],men:mn,
       cx:cen[i][0],cy:cen[i][1],lx:lpos[i][0],ly:lpos[i][1],area:area,hasCity:!!hasCity[i],df:T.df,coastal:cst[i]>=4,
+      poly:pw.cells[i].map(function(p){return[+p[0].toFixed(1),+p[1].toFixed(1)];}),
       d:'M'+pw.cells[i].map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}).join('L')+'Z'});
   }
   cities.forEach(function(c3,k){
@@ -376,11 +377,11 @@ function tryMap(R){
   /* 다리 노드는 강을 건너는 직접 길을 대신한다 */
   var rail=[];nodes.forEach(function(t){if(t.type==='stn')rail.push(t.id);});
   var riverD='M'+river.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}).join('L');
-  return{score:score,nodes:nodes,adj:adj,coast:coast,riverD:riverD,rail:rail};
+  return{score:score,nodes:nodes,adj:adj,coast:coast,riverD:riverD,riverPts:river,rail:rail,nAreas:n};
 }
 
 function mapWidth(){
-  try{var w=$('mapwrap');if(w&&w.clientWidth>100&&w.clientHeight>100)return clamp(Math.round(w.clientWidth/w.clientHeight*504-24),300,470);}catch(e){}
+  try{var w=$('stage');if(w&&w.clientWidth>100&&w.clientHeight>100)return clamp(Math.round(w.clientWidth/w.clientHeight*504-24),300,470);}catch(e){}
   return 420;
 }
 function genMap(mseed,mw){
@@ -396,7 +397,7 @@ function genMap(mseed,mw){
     if(r.score<=6||(k>=8&&best))break;
   }
   if(!best){if(mw!==420)return genMap(mseed,420);throw new Error('map');}
-  NODES=best.nodes;ADJ=best.adj;COAST=[[-14,-14],[mw+14,-14],[mw+14,494],[-14,494]];RIVER_D=best.riverD;RAIL=best.rail;
+  NODES=best.nodes;ADJ=best.adj;RIVER_PTS=best.riverPts;N_AREAS=best.nAreas;COAST=[[-14,-14],[mw+14,-14],[mw+14,494],[-14,494]];RIVER_D=best.riverD;RAIL=best.rail;
   COAST_D='M'+COAST.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}).join('L')+'Z';
   var N=NODES.length;DIST=[];
   for(var i=0;i<N;i++){
@@ -405,6 +406,6 @@ function genMap(mseed,mw){
     while(q.length){var u=q.shift();ADJ[u].forEach(function(v){if(dist[v]===99){dist[v]=dist[u]+1;q.push(v);}});}
     DIST.push(dist);
   }
-  HQ_ID=-1;NODES.forEach(function(t){if(t.hq&&t.owner===0)HQ_ID=t.id;});
+  HQ_ID=-1;HQ_OF=[-1,-1,-1,-1];NODES.forEach(function(t){if(t.hq){HQ_OF[t.owner]=t.id;if(t.owner===0)HQ_ID=t.id;}});
   MAPSEED=mseed;MAP_W=mw;
 }

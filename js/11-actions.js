@@ -1,6 +1,6 @@
 /* ========== 행동 처리 ========== */
 function render(){
-  renderTop();renderGauges();renderTick();renderMap();renderInfo();renderActions();renderTabs();renderSheet();renderModal();renderRecap();saveGame();
+  renderTop();renderGauges();renderTick();renderAdvisor();renderMap();renderInfo();renderActions();renderTabs();renderSheet();renderModal();renderRecap();saveGame();
 }
 var fxT=null,flT=null;
 function fxClear(){clearTimeout(fxT);fxT=setTimeout(function(){ui.pops=[];ui.shot=null;renderMap();},1500);}
@@ -85,8 +85,9 @@ function endTonight(){
   if(ui.sel>=0&&G.tiles[ui.sel].owner!==0)ui.sel=-1;
   setHint('',false);
   if(!G.over){
-    var lines=G.log.slice(logLen).filter(function(e){return e.tone!=='sep';}).slice(0,8);
-    rc={day:G.day-1,title:lost>0?'빼앗긴 밤':(G.heat>=55?'숨 막히는 밤':'지나간 밤'),lines:lines};
+    var lines=G.log.slice(logLen).filter(function(e){return e.tone!=='sep';}).slice(0,9);
+    var bet=lines.some(function(e){return/배신!|돌아섰다/.test(e.text);}),ally=lines.some(function(e){return/동맹을 맺었다|손을 잡았다|휴전했다/.test(e.text);});
+    rc={day:G.day-1,title:bet?'배신의 밤':(lost>0?'빼앗긴 밤':(ally?'손잡는 밤':(G.heat>=55?'숨 막히는 밤':'지나간 밤'))),lines:lines};
   }
   function fin(){
     ui.hold=null;ui.busy=false;ui.recap=rc;

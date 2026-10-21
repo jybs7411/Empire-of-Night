@@ -1,6 +1,6 @@
 /* ========== 모바일 화면 · 설정 · 소리 ========== */
 var $=function(id){return document.getElementById(id);};
-var G=null,SAVE_KEY='nb-save-v2',SET_KEY='nb-set-v2';
+var G=null,SAVE_KEY='nb-save-v3',SET_KEY='nb-set-v2',SEEN_KEY='nb-seen-v3';
 var set={sound:true,haptic:true,diff:0,anim:true};
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
@@ -34,10 +34,10 @@ var SFX={
 function sfx(n){try{if(SFX[n])SFX[n]();}catch(e){}}
 function buzz(p){if(!set.haptic)return;try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 
-var ui={busy:false,hold:null,peek:-1,sel:-1,mode:'move',amt:'all',msg:'',err:false,flash:{},sheet:null,more:'rules',page:0,pops:[],shot:null,recap:null,confirmNew:false,focus:null};
+var ui={busy:false,hold:null,peek:-1,sel:-1,mode:'move',amt:'all',msg:'',err:false,flash:{},sheet:null,more:'rules',page:0,pops:[],shot:null,recap:null,confirmNew:false,focus:null,ops:'over',tsel:null,gauge:'dread',confirmBreak:-1,intro:false};
 var prevV={dread:null,heat:null,anx:null};
 var undoStack=[];
-var TIPS=['지도는 판마다 새로 만들어집니다. 산·숲·강·역을 눌러 지형을 읽으세요.','이웃 땅을 칠 땐 "우세"가 뜬 곳을 노리세요. 산과 요새는 지키는 쪽이 유리합니다.','강은 건널 수 없습니다. 다리목을 쥔 쪽이 길을 쥡니다.'];
+var TIPS=['지도는 판마다 새로 만들어집니다. 산·숲·강·역을 눌러 지형을 읽으세요.','이웃 땅을 칠 땐 "우세"가 뜬 곳을 노리세요. 산과 요새는 지키는 쪽이 유리합니다.','이웃도 서로 손잡고 배신합니다. 외교 탭에서 휴전을 맺고 동맹을 노려 보세요.'];
 /* 조직 표식: 0 불꽃 · 1 마름모 · 2 초승달 · 3 송곳니 */
 var MARKS=[
   {n:'불꽃',d:'M0 -8C2 -4 5.5 -2 5.5 2.2A5.5 5.5 0 0 1 -5.5 2.2C-5.5 -0.2 -4 -1.8 -2.6 -3.6C-2.4 -1.6 -1.2 -1.6 -0.6 -3.2C-0.2 -4.6 -0.4 -6.4 0 -8ZM0 7.4C-1.7 7.4 -2.8 6.2 -2.8 4.6C-2.8 3 -1.4 2 0 0.6C1.4 2 2.8 3 2.8 4.6C2.8 6.2 1.7 7.4 0 7.4Z'},
