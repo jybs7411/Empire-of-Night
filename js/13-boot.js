@@ -1,0 +1,35 @@
+/* ========== 시작 ========== */
+function migrate(g){
+  if(g.diff===undefined)g.diff=0;
+  if(g.streak===undefined)g.streak=0;
+  if(g.bestStreak===undefined)g.bestStreak=0;
+  if(g.goalsDone===undefined)g.goalsDone=0;
+  if(!g.goal)newGoal(g);
+  return g;
+}
+function boot(data,again){
+  finishAnim(true);ui.busy=false;ui.hold=null;ui.peek=-1;BATTLES.length=0;
+  var ok=false;
+  if(data&&data.tiles&&data.rs!==undefined&&data.mseed!==undefined&&data.crew&&data.rules&&data.tech&&!data.over){
+    try{genMap(data.mseed,data.mw);ok=data.tiles.length===NODES.length;}catch(e0){ok=false;}
+  }
+  if(ok)G=migrate(data);
+  else{
+    DIFF=set.diff;
+    var ms=(again&&G&&G.mseed!==undefined)?G.mseed:undefined;
+    G=newGame((Math.random()*4294967296)>>>0,ms,(again&&G&&G.mw)?G.mw:undefined);
+  }
+  ui.sel=-1;ui.mode='move';ui.msg='';ui.err=false;ui.flash={};ui.focus=null;ui.sheet=null;ui.recap=null;ui.pops=[];ui.shot=null;ui.confirmNew=false;
+  undoStack=[];
+  prevV.dread=null;prevV.heat=null;prevV.anx=null;
+  $('modal').dataset.key='';$('modal').hidden=true;$('modal').innerHTML='';$('recap').hidden=true;$('recap').innerHTML='';
+  render();
+}
+try{
+  var saved=null,raw=lsGet(SAVE_KEY);
+  if(raw){try{saved=JSON.parse(raw);}catch(e2){saved=null;}}
+  var hot=window.claude&&window.claude.hot;
+  if(hot&&hot.snapshot)hot.snapshot(function(){return G;});
+  if(hot&&hot.ready)hot.ready(function(d){boot(d||saved);});
+  else boot((hot&&hot.data)?hot.data:saved);
+}catch(err){boot(null);}
